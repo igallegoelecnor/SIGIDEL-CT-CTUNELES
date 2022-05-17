@@ -1,0 +1,2917 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PGMExchangeFile>
+	<fileHeader company="Schneider Automation" product="Unity Pro XL V12.0 - 170404A" dateTime="date_and_time#2022-5-17-12:34:41" content="Fichero fuente de multi programa" DTDVersion="41"></fileHeader>
+	<contentHeader name="Proyecto" version="0.0.460" dateTime="date_and_time#2022-5-17-13:5:12"></contentHeader>
+	<logicConf>
+		<resource resName="Micro Basic" resIdent="BMX P34 2020 02.70">
+			<taskDesc task="MAST" taskType="cyclic" valueType="0" maxExecTime="250">
+				<sectionDesc name="SECCION_PRIMER_CICLO" SectionOrder="1"></sectionDesc>
+				<sectionDesc name="SECCION_SINCRONIZAR_RELOJ" SectionOrder="2"></sectionDesc>
+				<sectionDesc name="SECCION_TEST_ENLACE" SectionOrder="3"></sectionDesc>
+				<sectionDesc name="SECCION_COMUNICACION_TEST_ENLACE" SectionOrder="4"></sectionDesc>
+				<sectionDesc name="SECCION_METER_SACAR_DE_COLA" SectionOrder="5"></sectionDesc>
+				<sectionDesc name="SECCION_BUF_SAL_COLA_A_LECTURA" SectionOrder="6"></sectionDesc>
+				<sectionDesc name="SECCION_CARGAR_DAT_PRIMER_CICLO" SectionOrder="7"></sectionDesc>
+				<sectionDesc name="SECCION_DIRECCIONAMIENTO_IP" SectionOrder="8"></sectionDesc>
+				<sectionDesc name="SECCION_MODO_EXPLOTACION" SectionOrder="9"></sectionDesc>
+				<sectionDesc name="SECCION_COMUNICACION" SectionOrder="10"></sectionDesc>
+				<sectionDesc name="SECCION_MANDOS_VIGILANCIA" SectionOrder="11"></sectionDesc>
+				<sectionDesc name="SECCION_NUMEROS_MANDOS_SD" SectionOrder="12"></sectionDesc>
+				<sectionDesc name="BANDA_TRATA_EQUIPOS" SectionOrder="13"></sectionDesc>
+				<sectionDesc name="LECTURAS_SACIS_MB" SectionOrder="14"></sectionDesc>
+				<sectionDesc name="FILTRAR_COM_EQUIPOS" SectionOrder="15"></sectionDesc>
+				<sectionDesc name="NUM_LECTURAS_MB" SectionOrder="16"></sectionDesc>
+				<sectionDesc name="TRATAMIENTO_MEDIDAS_EQ" SectionOrder="17"></sectionDesc>
+				<sectionDesc name="METER_EN_COLA_EQUIPOS" SectionOrder="18"></sectionDesc>
+				<sectionDesc name="COMUNIC_EQUIPOS" SectionOrder="19"></sectionDesc>
+				<sectionDesc name="SECCION_FIN_PRIMER_CICLO" SectionOrder="20"></sectionDesc>
+			</taskDesc>
+		</resource>
+	</logicConf>
+	<program>
+		<identProgram name="SECCION_PRIMER_CICLO" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(********************************)
+(*******PRIMER CICLO*************)
+(********************************)
+
+(*Al pasar de stop a run*)
+PRIMER_CICLO:=%S21;
+(*Hola que pasa*)
+IF PRIMER_CICLO THEN
+	AUX_P_C:=0;
+	TEMP_P_C:=0;
+	PRIMER_CICLO:=1;
+	PRIMER_CICLO_DATOS_FISICOS_OK:=0;
+	PRIMER_CICLO_COMUNIC_OK:=0;
+	AUX_EQUIPOS:=1;
+	SEGURIDAD:=1;(*ED PARA EVITAR QUE SE EJECUTE ALGUN MANDO DURANTE EL PRIMER CICLO*)
+
+	(*CONFIGURACION HW*)
+	(*Para globalizar los bucles FOR, hay que indicar cuantos grupos de 16 bits hay sumando todas las tarjetas*)
+	NUM_TARJETAS16_ED:=6;
+	NUM_TARJETAS16_SD:=2;
+	(* RESETEAR TODOS LOS MANDOS *)
+	(* MANDOS DIRECTOS, HAY 32 *)
+	FOR I:=1 TO 16*NUM_TARJETAS16_SD DO
+		SALIDA[I]:=FALSE;
+	END_FOR;
+
+END_IF;
+
+(* OTRAS INICIALIZACIONES *)
+R_TRIG_10MSG (CLK:=%S4, Q=&gt;REG_10_MSG); 
+R_TRIG_100MSG (CLK:=%S5, Q=&gt;REG_100_MSG); 
+R_TRIG_SEG (CLK:=%S6, Q=&gt;REG_1_SG);
+
+IF GR_CTRL_PLC_1_FS THEN
+	SEGURIDAD:=1;
+ELSE
+	SEGURIDAD:=0;
+END_IF;
+
+(* SE ANULA por orden de JAVIER MUNGUIRA EL ENCOLAMIENTO Y EL ENVIO ESPONTANEO DE LAS
+   MEDIDAS DE LOS EQUIPOS LEIDOS (en este caso 2 SACIs,
+   PARA QUE EL SCADA PUEDA LEER DICHAS MEDIDAS DE QUIPOS CADA INTERVALO QUE QUIERA *)
+
+ANULADO_ENVIO_MEDIDAS_EQ:=1;
+
+(*CARGA BANDA TRATAMIENTO EQUIPOS A MAXIMO SE ANULA TEMPORALMENTE PARA QUE SE ENVIEN TODAS
+LAS MEDIDAS SEGUN INSTRUCCIONES DE JAVIER MUNGIRA 28/10/08 HECHO POR DAVID*)
+
+(*IF PRIMER_CICLO AND AUX_BT THEN
+	FOR PC:=1 TO 20 DO
+	B_TRATA_EQUIPOS_PLC_1[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_2[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_3[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_4[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_5[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_6[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_7[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_8[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_9[PC]:=32767;
+	B_TRATA_EQUIPOS_PLC_10[PC]:=32767;
+	END_FOR;
+	AUX_BT:=0;
+END_IF;*)
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_SINCRONIZAR_RELOJ" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*************************************************)
+(*  SINCRONIZACION del RELOJ del PLC desde el PC *)
+(*************************************************)
+(* las palabras internas del reloj del PLC son:
+     %SW49: día de la semana
+1 = Lunes,2 = Martes,3 = Miércoles,4 = Jueves,5 = Viernes,6 = Sábado,7 = Domingo 
+     %SW50: segundos (16#SS00). 
+     %SW51: horas y minutos (16#HHMM). 
+     %SW52: mes y día (16#MMJJ). 
+     %SW53: año (16#AAAA).
+   nota:  todo en BCD   
+las palabras donde llegan las nuevas consignas desde el PC:
+400411 : DIA DE LA SEMANA
+400412 : MES
+400413 : DIA DEL MES
+400414 : AÑO
+400415 : HORA
+400416 : MIN
+400417 : SEG
+  y para cargar nuevos valores hay que :
+  1º - poner a "1" el bit $S50 "ajustar reloj"
+  2º - cargar las palabras de las nuievas consignas
+  3º - poner a "0" el bit $S50 "ajustar reloj"
+*)
+(**************************************************************)
+(* CARGA del RELOJ del PLC en el STATUS para uqe lo lea el PC *)
+(**************************************************************)
+
+
+DIA_SEMANA_PLC:=BCD_TO_INT(%SW49);
+
+SEGUNDOS_PLC:=BCD_TO_INT(%SW50/16#100);
+(*MSEG_PLC:=HORA_NTP_BCD.Millisecond;*)
+
+MINUTOS_PLC:=BCD_TO_INT(word_to_int((INT_TO_WORD(%SW51)) AND 16#00FF));
+HORAS_PLC:=BCD_TO_INT(%SW51/16#100);
+HORAS_PLC:=HORAS_PLC-1;
+DIA_PLC:=BCD_TO_INT(word_to_int((INT_TO_WORD(%SW52)) AND 16#00FF));
+MES_PLC:=BCD_TO_INT(%SW52/16#100);
+
+AÑO_PLC:=BCD_TO_INT(%SW53);
+AÑO_PLC:=AÑO_PLC-2000;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_TEST_ENLACE" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(********************************)
+ (******   TEST DE ENLACE   ******)
+ (********************************)
+  
+ (* DEL PDC AL SGC *)
+  
+ (* SI NO COMUNICAMOS EN 2 MINUTOS MANDAMOS UN MENSAJE DE TEST DE ENLACE *)
+  
+ WTB20 (IN := (INT_TO_WORD(M_R_TEST_ENLACE_PDC_SGC)));
+  
+ IF WTB20.BIT15 AND WTB20.BIT13 THEN
+ TEMP_PDC_SGC:=INT_TO_WORD(M_R_TEST_ENLACE_PDC_SGC);
+ TEMP_PDC_SGC:=TEMP_PDC_SGC XOR 16#A000;
+ TEMP_PDC_SGC_INT:=WORD_TO_INT(TEMP_PDC_SGC);
+ TEMP_TEST_ENLACE:=TEMP_PDC_SGC_INT;
+ M_R_TEST_ENLACE_PDC_SGC:=0;
+ ALGO_RECIBIDO:=1;
+ END_IF;
+  
+ IF PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1 THEN 
+ IF REG_1_SG THEN
+ 	IF TEMP_TEST_ENLACE&gt;0 THEN
+ 	TEMP_TEST_ENLACE:=TEMP_TEST_ENLACE-1;
+ 		IF TEMP_TEST_ENLACE=0 THEN
+ 			TEST_ENLACE_PDC_SGC:=TEMP_PDC_SGC_INT;
+ 			TEST_ENLACE_PDC_SGC:=TEST_ENLACE_PDC_SGC+AUX_PDC; (* AUX_PCD = 16#A000 = 1010000000000000 BIN *)
+ 			ESCRITURA_PDC_SGC_TE:=INT_TO_WORD(TEST_ENLACE_PDC_SGC);
+ 			ESCRITURAS_ETH_REQ_TE:=1;
+ 			TEMP_TEST_ENLACE:=TEMP_PDC_SGC_INT;	
+     		END_IF;
+     	END_IF;
+ END_IF;
+ 	IF ESCRITURAS_ETH_REQ_TE OR ESCRITURAS_ETH_REQ THEN
+     	TEMP_TEST_ENLACE:=TEMP_PDC_SGC_INT;
+     	END_IF;
+ END_IF;
+  
+ IF ESCRITURAS_ETH_DONE_TE OR ESCRITURAS_ETH_ERROR_TE THEN
+ 	ESCRITURAS_ETH_REQ_TE:=0;
+ END_IF;
+  
+ IF ESCRITURAS_ETH_REQ_TE THEN
+ TIEMPO:=TIEMPO+1;
+ END_IF;
+  
+ IF TIEMPO=20 THEN
+ ESCRITURAS_ETH_REQ_TE:=0;
+ TIEMPO:=0;
+ END_IF;
+  
+  
+ (* DEL SGC AL PCD *)
+  
+ WTB20 (IN := (INT_TO_WORD(M_R_TEST_ENLACE_SGC_PDC)));
+  
+ IF WTB20.BIT15=1 AND WTB20.BIT14=1 THEN
+ TEMP_SGC_PDC:=INT_TO_WORD(M_R_TEST_ENLACE_SGC_PDC);
+ TEMP_SGC_PDC:=TEMP_SGC_PDC XOR 16#C000;
+ TEMP_SGC_PDC_INT:=WORD_TO_INT(TEMP_SGC_PDC);
+ TEMP_SGC_PDC_INT:=TEMP_SGC_PDC_INT+30;
+ TEMP_SGC:=TEMP_SGC_PDC_INT;
+ M_R_TEST_ENLACE_SGC_PDC:=0;
+ ALGO_RECIBIDO:=1;
+ END_IF;
+  
+ IF ALGO_RECIBIDO THEN
+ TEMP_SGC:=TEMP_SGC_PDC_INT;
+ ALGO_RECIBIDO:=0;
+ END_IF;
+  
+ IF ALGO_RECIBIDO=0 AND REG_1_SG THEN
+ TEMP_SGC:=TEMP_SGC-1;
+ 	IF TEMP_SGC=0 THEN
+ 	WTB20 (IN := (INT_TO_WORD(ESTADO_COMUNIC_ACTIVA_LECTURA)));
+ 	ENLACE_COMUNIC_OK_WORD:=INT_TO_WORD(ENLACE_COMUNIC_OK_LECTURA); 
+ 		IF WTB20.BIT0 THEN
+ 		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0001;
+ 		END_IF;
+ 		IF WTB20.BIT1 THEN
+ 		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0002;
+ 		END_IF;
+ 		IF WTB20.BIT2 THEN
+ 		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0004;
+ 		END_IF;
+ 		IF WTB20.BIT3 THEN
+ 		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0008;
+ 		END_IF;
+ 		IF WTB20.BIT4 THEN
+ 		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0010;
+ 		END_IF;
+ 		IF WTB20.BIT5 THEN
+ 		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0020;
+ 		END_IF;
+ 		IF WTB20.BIT6 THEN
+ 		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0040;
+ 		END_IF;
+ 		IF WTB20.BIT7 THEN
+ 		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0080;
+ 		END_IF;
+ 	ENLACE_COMUNIC_OK_LECTURA:=WORD_TO_INT(ENLACE_COMUNIC_OK_WORD);	
+ 	ESTADO_COMUNIC_ACTIVA_LECTURA:=-32768;
+ 	TEMP_SGC:=TEMP_SGC_PDC_INT;
+ 	END_IF;
+ END_IF;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_COMUNICACION_TEST_ENLACE" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*ETHERNET: 
+Se supone que funciona de la siguiente manera :
+- cuando se detecta que la ETH no está ocupada ,es decir , está LIBRE,
+se puede transmitir el mensaje.
+- Parece ser que la cantidad máxima de registros a transmitir es de 100 
+registros*)
+
+(*COMUNICACIONES VIA ETHERNET CON EL SGC*)
+    
+ADDM1 := MUX (K := CONTROL_IP,
+                IN0 := IP_NOE_EQUIPO0,
+                IN1 := IP_NOE1_EQUIPO1,
+		IN2 := IP_NOE2_EQUIPO2,
+		IN3 := IP_NOE1_EQUIPO3,
+		IN4 := IP_NOE2_EQUIPO4);
+
+IF ESCRITURAS_ETH_REQ_TE THEN
+	WRITE_VAR (ADR := ADDM (IN := ADDM1),
+	           OBJ := '%MW',
+	           NUM := 452,
+	           NB := ESCRITURAS_ETH_NO_REG_TE,
+	           EMIS := BUF_SAL_TE,
+	           GEST := GESTION_COM_TE);
+END_IF;
+
+ESCRITURAS_ETH_DONE_TE:=(GESTION_COM_TE[1].0 AND %S5) AND (GESTION_COM_TE[2]=0);
+ESCRITURAS_ETH_ERROR_TE:=(GESTION_COM_TE[2]&lt;&gt;0) AND %S6;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_METER_SACAR_DE_COLA" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*Al conectar borramos cola e iniciamos tempo analogicas*)
+ IF (PRIMER_CICLO AND PRIMER_CICLO_DATOS_FISICOS_OK=0) OR M_E=1 THEN
+(*PV_TEMPO_ANALOGICAS:=TEMP_CONF_CAMBIO_EA;*)
+	COLA (comanda :=COLA_BORRAR, 
+		buf_entr :=  BUF_ENTR, 
+		tipo_ent :=  0,
+	    	long_ent :=  0,
+	    	long_col := COLA_MAX); 
+	COMUNICACIONES_PV:=COMUNICACIONES_SP;
+	
+	BUF_AUX_ED:=BORRAR_BUF_AUX;
+	BUF_AUX_EDC:=BORRAR_BUF_AUX;
+	BUF_AUX_SD:=BORRAR_BUF_AUX;
+	PERDIDAS_ED:=0;
+	PERDIDAS_EDC:=0;
+	PERDIDAS_SD:=0;
+END_IF; 
+
+
+
+(************************************************)
+(******   TRATAMIENTO ENTRADAS DIGITALES   ******)
+(************************************************)
+
+(* TARJETA 1 *)
+DIGITAL_ACTUAL[1]:=WORD_TO_INT(BIT_TO_WORD (bit0 :=%I0.3.0, bit1 :=%I0.3.1, bit2 :=%I0.3.2, bit3 :=%I0.3.3, 
+                             	       bit4 :=%I0.3.4, bit5 :=%I0.3.5, bit6 :=%I0.3.6, bit7 :=%I0.3.7, 
+		                       bit8 :=%I0.3.8, bit9 :=%I0.3.9, bit10:=%I0.3.10, bit11:=%I0.3.11, 
+			               bit12:=%I0.3.12, bit13:=%I0.3.13, bit14:=%I0.3.14, bit15:=%I0.3.15));
+
+DIGITAL_ACTUAL[2]:=WORD_TO_INT(BIT_TO_WORD (bit0 :=%I0.3.16, bit1 :=%I0.3.17, bit2 :=%I0.3.18, bit3 :=%I0.3.19, 
+                       	               bit4 :=%I0.3.20, bit5 :=%I0.3.21, bit6 :=%I0.3.22, bit7 :=%I0.3.23, 
+		                       bit8 :=%I0.3.24, bit9 :=%I0.3.25, bit10:=%I0.3.26, bit11:=%I0.3.27, 
+			               bit12:=%I0.3.28, bit13:=%I0.3.29, bit14:=%I0.3.30, bit15:=%I0.3.31));
+
+(* TARJETA 2 *)
+
+DIGITAL_ACTUAL[3]:=WORD_TO_INT(BIT_TO_WORD (bit0 :=%I0.4.0, bit1 :=%I0.4.1, bit2 :=%I0.4.2, bit3 :=%I0.4.3, 
+                             	       bit4 :=%I0.4.4, bit5 :=%I0.4.5, bit6 :=%I0.4.6, bit7 :=%I0.4.7, 
+		                       bit8 :=%I0.4.8, bit9 :=%I0.4.9, bit10:=%I0.4.10, bit11:=%I0.4.11, 
+			               bit12:=%I0.4.12, bit13:=%I0.4.13, bit14:=%I0.4.14, bit15:=%I0.4.15));
+
+DIGITAL_ACTUAL[4]:=WORD_TO_INT(BIT_TO_WORD (bit0 :=%I0.4.16, bit1 :=%I0.4.17, bit2 :=%I0.4.18, bit3 :=%I0.4.19, 
+                       	               bit4 :=%I0.4.20, bit5 :=%I0.4.21, bit6 :=%I0.4.22, bit7 :=%I0.4.23, 
+		                       bit8 :=%I0.4.24, bit9 :=%I0.4.25, bit10:=%I0.4.26, bit11:=%I0.4.27, 
+			               bit12:=%I0.4.28, bit13:=%I0.4.29, bit14:=%I0.4.30, bit15:=%I0.4.31));
+
+(* TARJETA 3 *)
+
+DIGITAL_ACTUAL[5]:=WORD_TO_INT(BIT_TO_WORD (bit0 :=%I0.5.0, bit1 :=%I0.5.1, bit2 :=%I0.5.2, bit3 :=%I0.5.3, 
+                             	       bit4 :=%I0.5.4, bit5 :=%I0.5.5, bit6 :=%I0.5.6, bit7 :=%I0.5.7, 
+		                       bit8 :=%I0.5.8, bit9 :=%I0.5.9, bit10:=%I0.5.10, bit11:=%I0.5.11, 
+			               bit12:=%I0.5.12, bit13:=%I0.5.13, bit14:=%I0.5.14, bit15:=%I0.5.15));
+
+DIGITAL_ACTUAL[6]:=WORD_TO_INT(BIT_TO_WORD (bit0 :=%I0.5.16, bit1 :=%I0.5.17, bit2 :=%I0.5.18, bit3 :=%I0.5.19, 
+                       	               bit4 :=%I0.5.20, bit5 :=%I0.5.21, bit6 :=%I0.5.22, bit7 :=%I0.5.23, 
+		                       bit8 :=%I0.5.24, bit9 :=%I0.5.25, bit10:=%I0.5.26, bit11:=%I0.5.27, 
+			               bit12:=%I0.5.28, bit13:=%I0.5.29, bit14:=%I0.5.30, bit15:=%I0.5.31));
+
+
+(* Ante cambio de entradas digitales anotamos en cola *)
+ 
+IF (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) AND M_E=0 THEN
+	FOR I:=1 TO NUM_TARJETAS16_ED DO
+		IF DIGITAL_ACTUAL[I]&lt;&gt;DIGITAL_ANTES[I] THEN
+			FOR N:=1 TO NUM_TARJETAS16_ED DO
+				DIGITAL_ACTUAL_WORD[N]:=INT_TO_WORD (DIGITAL_ACTUAL[N]);
+				DIGITAL_ANTES_WORD[N]:=INT_TO_WORD (DIGITAL_ANTES[N]);
+				MATRIZ_DIGITAL_WORD[N]:=DIGITAL_ACTUAL_WORD[N] XOR DIGITAL_ANTES_WORD[N];
+				MATRIZ_DIGITAL[N]:=WORD_TO_INT (MATRIZ_DIGITAL_WORD[N]);
+			END_FOR;
+			PALABRA_CAMBIOS:=4;
+			BUF_ENTR[1]:=PALABRA_CAMBIOS;
+			BUF_ENTR[2]:=DIA_SEMANA_PLC;
+			BUF_ENTR[3]:=MES_PLC;
+			BUF_ENTR[4]:=DIA_PLC;
+			BUF_ENTR[5]:=AÑO_PLC;
+			BUF_ENTR[6]:=HORAS_PLC;
+			BUF_ENTR[7]:=MINUTOS_PLC;
+			BUF_ENTR[8]:=SEGUNDOS_PLC;
+			BUF_ENTR[9]:=MSEG_PLC;
+			BUF_ENTR[10]:=0;
+			FOR J:=1 TO NUM_TARJETAS16_ED DO
+				K:=J+10;
+				BUF_ENTR[K]:=DIGITAL_ACTUAL[J];
+			END_FOR;
+			FOR L:=1 TO NUM_TARJETAS16_ED DO
+				M:=L+10+NUM_TARJETAS16_ED;
+				BUF_ENTR[M]:=-1;   (*MATRIZ_DIGITAL[L];*)(*para envio simultaneo de cambios*)
+			END_FOR;
+			COLA (comanda :=COLA_INSERTAR,
+    				buf_entr :=  BUF_ENTR,    
+    				tipo_ent :=  APUNTE_ED,
+    				long_ent :=  10+(2*NUM_TARJETAS16_ED),
+    				long_col := COLA_MAX);
+    			IF COLA.AL_BUF=0 THEN
+				DIGITAL_ANTES:=DIGITAL_ACTUAL;
+			ELSE
+				PERDIDAS_ED:=PERDIDAS_ED+1;
+			END_IF;
+			EXIT;
+		END_IF;
+	END_FOR;
+END_IF;
+
+(***********************************************************)
+(******   TRATAMIENTO ENTRADAS DIGITALES CALCULADAS   ******)
+(***********************************************************)
+ 
+(*Digitales calculadas*)
+FOR I:=1 TO 20 DO
+	J:=16*(I-1);
+	DIGITAL_CALCULADAS_ACTUAL[I]:=WORD_TO_INT(BIT_TO_WORD(
+					bit0 := ED_CALCULADAS[J+1], bit1 := ED_CALCULADAS[J+2], 
+					bit2 := ED_CALCULADAS[J+3], bit3 := ED_CALCULADAS[J+4], 
+                       			bit4 := ED_CALCULADAS[J+5], bit5 := ED_CALCULADAS[J+6], 
+                       			bit6 := ED_CALCULADAS[J+7], bit7 := ED_CALCULADAS[J+8], 
+		                        bit8 := ED_CALCULADAS[J+9], bit9 := ED_CALCULADAS[J+10],  
+		                        bit10 := ED_CALCULADAS[J+11], bit11 := ED_CALCULADAS[J+13], 
+			                bit12 := ED_CALCULADAS[J+13], bit13 := ED_CALCULADAS[J+14], 
+			                bit14 := ED_CALCULADAS[J+15], bit15 := ED_CALCULADAS[J+16]));	
+END_FOR;
+
+(* Ante cambio de entradas digitales CALCULADAS anotamos en cola *)
+ 
+IF (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) AND M_E=0 THEN
+	FOR I:=1 TO 20 DO
+		IF DIGITAL_CALCULADAS_ACTUAL[I]&lt;&gt;DIGITAL_CALCULADAS_ANTES[I] THEN
+			FOR N:=1 TO 20 DO
+				DIGITAL_CALCULADAS_ACTUAL_WORD[N]:=INT_TO_WORD (DIGITAL_CALCULADAS_ACTUAL[N]);
+				DIGITAL_CALCULADAS_ANTES_WORD[N]:=INT_TO_WORD (DIGITAL_CALCULADAS_ANTES[N]);
+				MATRIZ_DIGITAL_CALCULADAS_WORD[N]:=  DIGITAL_CALCULADAS_ACTUAL_WORD[N] XOR DIGITAL_CALCULADAS_ANTES_WORD[N];
+				MATRIZ_DIGITAL_CALCULADAS[N]:=WORD_TO_INT (MATRIZ_DIGITAL_CALCULADAS_WORD[N]);
+			END_FOR;
+			PALABRA_CAMBIOS:=8;
+			BUF_ENTR[1]:=PALABRA_CAMBIOS;
+			BUF_ENTR[2]:=DIA_SEMANA_PLC;
+			BUF_ENTR[3]:=MES_PLC;
+			BUF_ENTR[4]:=DIA_PLC;
+			BUF_ENTR[5]:=AÑO_PLC;
+			BUF_ENTR[6]:=HORAS_PLC;
+			BUF_ENTR[7]:=MINUTOS_PLC;
+			BUF_ENTR[8]:=SEGUNDOS_PLC;
+			BUF_ENTR[9]:=MSEG_PLC;
+			BUF_ENTR[10]:=0;
+			FOR J:=1 TO 20 DO
+				K:=J+10;
+				BUF_ENTR[K]:=DIGITAL_CALCULADAS_ACTUAL[J];
+			END_FOR;
+			FOR L:=1 TO 20 DO
+				M:=L+30;
+				BUF_ENTR[M]:=MATRIZ_DIGITAL_CALCULADAS[L];
+			END_FOR;
+			COLA (comanda :=COLA_INSERTAR,
+    				buf_entr :=  BUF_ENTR,    
+    				tipo_ent :=  APUNTE_EDC,
+    				long_ent :=  50,
+    				long_col := COLA_MAX);
+    			IF COLA.AL_BUF=0 THEN
+				(*FOR N:=1 TO 20 DO*)
+				DIGITAL_CALCULADAS_ANTES:=DIGITAL_CALCULADAS_ACTUAL;
+				(*END_FOR;*)
+			ELSE
+				PERDIDAS_EDC:=PERDIDAS_EDC+1;
+			END_IF;
+			EXIT;
+		END_IF;
+	END_FOR;
+END_IF;
+
+(**************************************************) 
+(******   TRATAMIENTO DE SALIDAS DIGITALES   ******)
+(**************************************************)
+ 
+(* TARJETA 1 *)
+ 
+SALIDAS_DIGITALES_ACTUAL[1]:=WORD_TO_INT(BIT_TO_WORD(
+					bit0 := %Q0.6.0, bit1 := %Q0.6.1, bit2 := %Q0.6.2, bit3 := %Q0.6.3, 
+                       			bit4 := %Q0.6.4, bit5 := %Q0.6.5, bit6 := %Q0.6.6, bit7 := %Q0.6.7, 
+		                        bit8 := %Q0.6.8, bit9 := %Q0.6.9, bit10 := %Q0.6.10, bit11 := %Q0.6.11, 
+			                bit12 := %Q0.6.12, bit13 := %Q0.6.13, bit14:=%Q0.6.14, bit15 := %Q0.6.15));
+			                    
+SALIDAS_DIGITALES_ACTUAL[2]:=WORD_TO_INT(BIT_TO_WORD(
+					bit0 := %Q0.7.0, bit1 := %Q0.7.1, bit2 := %Q0.7.2, bit3 := %Q0.7.3, 
+                       			bit4 := %Q0.7.4, bit5 := %Q0.7.5, bit6 := %Q0.7.6, bit7 := %Q0.7.7, 
+		                        bit8 := %Q0.7.8, bit9 := %Q0.7.9, bit10 := %Q0.7.10, bit11 := %Q0.7.11, 
+			                bit12 := %Q0.7.12, bit13 := %Q0.7.13, bit14:=%Q0.7.14, bit15 := %Q0.7.15));
+			                  			                     
+			                  	               
+(* Ante cambio de SALIDAS digitales anotamos en cola *)
+ 
+IF (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) AND M_E=0 THEN
+	FOR I:=1 TO NUM_TARJETAS16_SD DO
+		IF SALIDAS_DIGITALES_ACTUAL[I]&lt;&gt;SALIDAS_DIGITALES_ANTES[I] THEN
+			FOR N:=1 TO NUM_TARJETAS16_SD DO
+				SALIDAS_DIGITALES_ACTUAL_WORD[N]:=INT_TO_WORD (SALIDAS_DIGITALES_ACTUAL[N]);
+				SALIDAS_DIGITALES_ANTES_WORD[N]:=INT_TO_WORD (SALIDAS_DIGITALES_ANTES[N]);
+				MATRIZ_SALIDAS_DIGITALES_WORD[N]:=  SALIDAS_DIGITALES_ACTUAL_WORD[N] XOR SALIDAS_DIGITALES_ANTES_WORD[N];
+				MATRIZ_SALIDAS_DIGITALES[N]:=WORD_TO_INT (MATRIZ_SALIDAS_DIGITALES_WORD[N]);
+			END_FOR;
+			PALABRA_CAMBIOS:=16;
+			BUF_ENTR[1]:=PALABRA_CAMBIOS;
+			BUF_ENTR[2]:=DIA_SEMANA_PLC;
+			BUF_ENTR[3]:=MES_PLC;
+			BUF_ENTR[4]:=DIA_PLC;
+			BUF_ENTR[5]:=AÑO_PLC;
+			BUF_ENTR[6]:=HORAS_PLC;
+			BUF_ENTR[7]:=MINUTOS_PLC;
+			BUF_ENTR[8]:=SEGUNDOS_PLC;
+			BUF_ENTR[9]:=MSEG_PLC;
+			BUF_ENTR[10]:=0;
+			FOR J:=1 TO NUM_TARJETAS16_SD DO
+				K:=J+10;
+				BUF_ENTR[K]:=SALIDAS_DIGITALES_ACTUAL[J];
+			END_FOR;
+			FOR L:=1 TO NUM_TARJETAS16_SD DO
+				M:=L+10+NUM_TARJETAS16_SD;
+				BUF_ENTR[M]:=MATRIZ_SALIDAS_DIGITALES[L];
+			END_FOR;
+			COLA (comanda :=COLA_INSERTAR,
+    			buf_entr :=  BUF_ENTR,    
+    			tipo_ent :=  APUNTE_SD,
+    			long_ent :=  10+(2*NUM_TARJETAS16_SD),
+    			long_col := COLA_MAX);
+    			IF COLA.AL_BUF=0 THEN
+				SALIDAS_DIGITALES_ANTES:=SALIDAS_DIGITALES_ACTUAL;
+			ELSE
+				PERDIDAS_SD:=PERDIDAS_SD+1;
+			END_IF;
+			EXIT;
+		END_IF;
+	END_FOR;
+END_IF;				   
+ 
+(*******************************)
+(******   SACAR DE COLA   ******)
+(*******************************)
+ 
+IF PRIMER_CICLO THEN
+	COMUNICACION:=0;
+	COMUNICACION_SCAN:=0;
+	ALGO_QUE_ENVIAR:=FALSE;
+END_IF;	
+ 
+(*Si podemos enviar, pedimos un apunte de cola*)
+IF COLA.puntero&gt;0 AND NOT ALGO_QUE_ENVIAR THEN
+	COLA (comanda := COLA_SACAR,
+    	buf_entr :=  BUF_ENTR,    
+    	tipo_ent :=  0,
+    	long_ent :=  0,
+    	long_col := COLA_MAX);
+	ALGO_QUE_ENVIAR:=TRUE;		
+END_IF;
+ 
+PUNTERO:= COLA.puntero;
+TIPO_SAL:= COLA.tipo_sal;
+LONG_SAL:= COLA.long_sal;
+BUF_SAL:= COLA.BUF_SAL;
+BORRA:=COLA.BORRA;
+ 
+IF COMUNICACION=0 THEN
+	ESCRITURAS_ETH_REQ:=FALSE;
+END_IF;
+	
+IF COMUNICACION=0 AND ALGO_QUE_ENVIAR THEN
+	COMUNICACION:=1;
+	COMUNICACION_SCAN:=0;
+END_IF;	
+ 
+IF COMUNICACION=1 THEN
+	COMUNICACION_SCAN:=COMUNICACION_SCAN+1; (* espera un ciclo para enviar el mensaje al FE *)
+	IF COMUNICACION_SCAN&gt;=2 THEN
+		COMUNICACION:=2;
+		COMUNICACION_SCAN:=0;
+		
+		ESCRITURAS_ETH_REQ:=TRUE;
+		ESCRITURAS_ETH_SLAVEREG:= INT_TO_WORD(1800+(1000*(N_PLC)));
+		ESCRITURAS_ETH_NO_REG:= INT_TO_WORD (COLA.long_sal);
+		(*NOTA: la dirección IP del FE es fija y se pone en la declaracion de var
+		        Y n_plc tambien se pone como valor inicial en la declaracion var *)
+		BUF_EMISION:=COLA.buf_sal;
+		BUF_EMISION[1]:=(COLA.tipo_sal*256)+COLA.long_sal;
+ 
+		ESCRITURAS_ETH_DATABUF:=COLA.buf_sal;		  
+		ESCRITURAS_ETH_DATABUF[1]:=(COLA.tipo_sal*256)+COLA.long_sal;
+ 
+		(*
+		FOR i:=1 TO j DO
+			escrituras_eth_fe_databuf[i]:=COLA.buf_sal[i];
+		END_FOR;
+		*)
+		
+		COM_LIBRE:=FALSE;
+	END_IF;	
+END_IF;
+ 
+IF COMUNICACION=2 THEN
+	COMUNICACION_SCAN:=COMUNICACION_SCAN+1;
+	IF ESCRITURAS_ETH_DONE THEN
+		 COMUNICACION:=3;
+		 COMUNICACION_SCAN:=0;
+		 ESCRITURAS_ETH_REQ:=FALSE;	
+		 ESCRITURAS_ETH_DATABUF[1]:=0;
+		 CONT_OK_ETH := CONT_OK_ETH + 1;
+		 FE_OK:=1;
+	END_IF;
+	IF COMUNICACION_SCAN&gt;=10 OR ESCRITURAS_ETH_ERROR THEN
+		COMUNICACION:=1;
+		COMUNICACION_SCAN:=0;
+		COM_LIBRE:=TRUE;
+ 		CONT_ERROR_ETH := CONT_ERROR_ETH +1;
+ 		ESCRITURAS_ETH_REQ := FALSE;
+ 		
+	END_IF;
+END_IF;
+			
+IF COMUNICACION=3 THEN
+	COMUNICACION_SCAN:=COMUNICACION_SCAN+1;
+	IF FE_OK&lt;&gt;0 THEN 
+		COMUNICACION:=0;
+		COMUNICACION_SCAN:=0;
+		ALGO_QUE_ENVIAR:=FALSE;	(* solo se pone FALSE si se ha recibido el OK del FE,
+		                           en caso contrario se reintentaría de nuevo envíar *)
+		COM_LIBRE:= TRUE;
+		CONTESTA_ETH_OK := CONTESTA_ETH_OK +1;
+		FE_OK:=0;
+	END_IF;
+	IF COMUNICACION_SCAN&gt;=20  THEN
+		COMUNICACION:=1;
+		COMUNICACION_SCAN:=0;
+		COM_LIBRE:=TRUE;
+		CONTESTA_ETH_NO_OK := CONTESTA_ETH_NO_OK +1;
+	END_IF;
+END_IF;
+ 
+IF ESCRITURAS_ETH_ERROR OR ESCRITURAS_ETH_DONE THEN
+ESCRITURAS_ETH_REQ:=0;
+END_IF;
+
+IF ESCRITURAS_ETH_ERROR THEN
+	CONT_MSTR_ERROR:=CONT_MSTR_ERROR+1;
+END_IF;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_BUF_SAL_COLA_A_LECTURA" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*****************************************************************************************************)
+(******   NOVER LOS DATOS DE COMUNES (CAMBIOS) A LA ZONA DE LECTURA DESPUES DE ENVIAR   ******)
+(*****************************************************************************************************)
+ 
+IF ESCRITURAS_ETH_DONE THEN
+	CAMBIOS_PAQ_LECTURA:=BUF_SAL[1];
+END_IF;
+ 
+(**********************************************************************************************)
+(******   NOVER LOS DATOS DE ENTRADAS DIGITALES A LA ZONA DE LECTURA DESPUES DE ENVIAR   ******)
+(**********************************************************************************************)
+ 
+IF TIPO_SAL=1 AND ESCRITURAS_ETH_DONE AND (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) THEN
+	FOR H:=1 TO NUM_TARJETAS16_ED DO
+		H1:=H+10;
+		DIGITAL_LECTURA[H]:=BUF_SAL[H1];
+	END_FOR; 
+END_IF;
+
+(************************************************************************************************)
+(******   NOVER LOS DATOS DE DIGITALES CALCULADAS A LA ZONA DE LECTURA DESPUES DE ENVIAR   ******)
+(************************************************************************************************)
+ 
+IF TIPO_SAL=2 AND ESCRITURAS_ETH_DONE AND (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) THEN
+	FOR H2:=1 TO 20 DO
+		H3:=H2+10;
+		DIGITAL_CALCULADAS_LECTURA[H2]:=BUF_SAL[H3];
+	END_FOR; 
+END_IF;
+
+(*********************************************************************************************)
+(******   NOVER LOS DATOS DE SALIDAS DIGITALES A LA ZONA DE LECTURA DESPUES DE ENVIAR   ******)
+(*********************************************************************************************)
+ 
+IF TIPO_SAL=3 AND ESCRITURAS_ETH_DONE AND (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) THEN
+	FOR H4:=1 TO NUM_TARJETAS16_SD DO
+		H5:=H4+10;
+		SALIDAS_DIGITALES_LECTURA[H4]:=BUF_SAL[H5];
+	END_FOR; 
+END_IF;
+
+(*****************************************************************************************************)
+(******   MOVER LOS DATOS DE ESTADOS EQUIPOS  %MW993                                            ******)
+(*****************************************************************************************************)
+ 
+IF ESCRITURAS_ETH_DONE_EQ AND BUF_EQUIPOS[1]=0 AND (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) THEN 
+	ANALOGICAS_EQUIPOS_1_16:=INT_TO_WORD(IN:=BUF_EQUIPOS[11]); 
+END_IF;
+
+
+(*********************************************************************************************)
+(******   NOVER LOS DATOS DE eq 1,2,3,4 MAR144 A LA ZONA DE LECTURA DESPUES DE ENVIAR   ******)
+(*********************************************************************************************)
+
+(* 15-3-2017 SE ANULA por orden de JAVIER MUNGUIRA EL ENCOLAMIENTO Y EL ENVIO ESPONTANEO
+   DE LAS MEDIDAS DE EQUIPOS, PARA QUE EL SCADA PUEDA LEER DICHAS MEDIDAS CUANDO QUIERA *) 
+(*   INICIO ANULACION *)
+(*  EQUIPO1
+IF ESCRITURAS_ETH_DONE_EQ AND BUF_EQUIPOS[1]=1 AND (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) THEN
+	FOR H4:=1 TO 40 DO
+	H5:=H4+10;
+	ANALOGICAS_EQUIPO1[H4]:=BUF_EQUIPOS[H5];
+	END_FOR; 
+END_IF;
+*)
+(*  EQUIPO2
+IF ESCRITURAS_ETH_DONE_EQ AND BUF_EQUIPOS[1]=2 AND (PRIMER_CICLO=0 OR PRIMER_CICLO_DATOS_FISICOS_OK=1) THEN
+	FOR H4:=1 TO 40 DO
+	H5:=H4+10;
+	ANALOGICAS_EQUIPO2[H4]:=BUF_EQUIPOS[H5];
+	END_FOR; 
+END_IF; 
+*)   (* FIN ANULACION *)
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_CARGAR_DAT_PRIMER_CICLO" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(***********************************************************************************************)
+(******   MOVER LOS DATOS DE ENTRADAS DIGITALES A LA ZONA DE LECTURA EN EL PRIMER CICLO   ******)
+(***********************************************************************************************)
+ 
+IF PRIMER_CICLO AND PRIMER_CICLO_DATOS_FISICOS_OK=0 THEN
+	FOR H:=1 TO NUM_TARJETAS16_ED DO
+		DIGITAL_LECTURA[H]:=DIGITAL_ACTUAL[H];
+		DIGITAL_ANTES[H]:=DIGITAL_ACTUAL[H];
+	END_FOR;
+END_IF;
+ 
+(*************************************************************************************************)
+(******   MOVER LOS DATOS DE DIGITALES CALCULADAS A LA ZONA DE LECTURA EN EL PRIMER CICLO   ******)
+(*************************************************************************************************)
+ 
+IF PRIMER_CICLO AND PRIMER_CICLO_DATOS_FISICOS_OK=0 THEN
+	FOR H2:=1 TO 20 DO
+		DIGITAL_CALCULADAS_LECTURA[H2]:=DIGITAL_CALCULADAS_ACTUAL[H2];
+		DIGITAL_CALCULADAS_ANTES[H2]:=DIGITAL_CALCULADAS_ACTUAL[H2];
+	END_FOR; 
+END_IF;
+
+(**********************************************************************************************)
+(******   MOVER LOS DATOS DE SALIDAS DIGITALES A LA ZONA DE LECTURA EN EL PRIMER CICLO   ******)
+(**********************************************************************************************)
+ 
+IF PRIMER_CICLO AND PRIMER_CICLO_DATOS_FISICOS_OK=0 THEN
+	FOR H4:=1 TO 13 DO
+		SALIDAS_DIGITALES_LECTURA[H4]:=SALIDAS_DIGITALES_ACTUAL[H4];
+		SALIDAS_DIGITALES_ANTES[H4]:=SALIDAS_DIGITALES_ACTUAL[H4];
+	END_FOR; 
+END_IF;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_DIRECCIONAMIENTO_IP" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(* CONDICIONES DE PRIMER CICLO *)
+  
+IF PRIMER_CICLO=1 THEN
+	ESTADO_COMUNIC_ACTIVA:=-32768;
+	ENLACE_COMUNIC_OK_LECTURA:=-32513;
+END_IF;
+(* DIRECCIONAMIENTO PARA LAS COMUNICACIONES*)
+
+WTB5 (IN := (INT_TO_WORD(M_R_ESTADO_COMUNIC_ACTIVA)));
+IF WTB5.BIT15 THEN
+(* CONMUTAR VIA PARA RESETEO EN CASO DE QUE SE BLOQUEE LA VIA*)
+	CONMUTAR_DE_VIA:=1;
+	WTB5 (IN := (INT_TO_WORD(ENLACE_COMUNIC_OK_LECTURA)));
+	ENLACE_COMUNIC_OK_WORD:=INT_TO_WORD(ENLACE_COMUNIC_OK_LECTURA);
+	IF WTB5.BIT15 THEN
+		ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#8000;
+	END_IF;
+	CASE ESTADO_COMUNIC_ACTIVA OF -32768:	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+		1:	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+			IF NOT WTB5.BIT0 THEN
+				ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0001;
+			END_IF;
+		2:	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+			IF NOT WTB5.BIT1 THEN
+				ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0002;
+			END_IF;
+		4:	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+			IF NOT WTB5.BIT2 THEN
+				ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0004;
+			END_IF;
+		8:	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+			IF NOT WTB5.BIT3 THEN
+				ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0008;
+			END_IF;
+		16:	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+			IF NOT WTB5.BIT4 THEN
+				ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0010;
+			END_IF;
+		32:	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+			IF NOT WTB5.BIT5 THEN
+				ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0020;
+			END_IF;
+		64:	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+			IF NOT WTB5.BIT6 THEN
+				ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0040;
+			END_IF;
+		128: 	ESTADO_COMUNIC_ACTIVA_LECTURA:=ESTADO_COMUNIC_ACTIVA;
+			IF NOT WTB5.BIT7 THEN
+				ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#0080;
+			END_IF;
+	END_CASE;
+	ALGO_RECIBIDO:=1;
+	ENLACE_COMUNIC_OK_LECTURA:=WORD_TO_INT(ENLACE_COMUNIC_OK_WORD);
+END_IF;
+
+M_R_ESTADO_COMUNIC_ACTIVA:=0;
+
+WTB5 (IN := (INT_TO_WORD(ESTADO_COMUNIC_ACTIVA_LECTURA)));
+
+(* EQUIPO 1 *) 
+
+IF WTB5.BIT0 AND NOT WTB5.BIT15 THEN
+	IP_4:=IP_4_1;
+	IP_3:=IP_3_1;
+	IP_2:=IP_2_1;
+	IP_1:=IP_1_1;
+
+	EQUIPO1:=1;
+	EQUIPO2:=0;
+	EQUIPO3:=0;
+	EQUIPO4:=0;
+	EQUIPO0:=0;
+END_IF;
+
+(* EQUIPO 2 *)
+
+IF WTB5.BIT1 AND NOT WTB5.BIT15 THEN
+	IP_4:=IP_4_2;
+	IP_3:=IP_3_2;
+	IP_2:=IP_2_2;
+	IP_1:=IP_1_2;
+
+	EQUIPO1:=0;
+	EQUIPO2:=1;
+	EQUIPO3:=0;
+	EQUIPO4:=0;
+	EQUIPO0:=0;
+END_IF;
+
+(* EQUIPO 3 *) 
+
+IF WTB5.BIT2 AND NOT WTB5.BIT15 THEN
+	IP_4:=IP_4_3;
+	IP_3:=IP_3_3;
+	IP_2:=IP_2_3;
+	IP_1:=IP_1_3;
+
+	EQUIPO1:=0;
+	EQUIPO2:=0;
+	EQUIPO3:=1;
+	EQUIPO4:=0;
+	EQUIPO0:=0;
+END_IF;
+
+(* EQUIPO 4 *) 
+
+IF WTB5.BIT3 AND NOT WTB5.BIT15 THEN
+	IP_4:=IP_4_4;
+	IP_3:=IP_3_4;
+	IP_2:=IP_2_4;
+	IP_1:=IP_1_4;
+
+	EQUIPO1:=0;
+	EQUIPO2:=0;
+	EQUIPO3:=0;
+	EQUIPO4:=1;
+	EQUIPO0:=0;
+END_IF;
+
+
+
+(* COMUNICACION BLOQUEADA *)
+
+IF WTB5.BIT15 THEN
+	IP_4:=0;
+	IP_3:=0;
+	IP_2:=0;
+	IP_1:=0;
+
+	EQUIPO1:=0;
+	EQUIPO2:=0;
+	EQUIPO3:=0;
+	EQUIPO4:=0;
+	EQUIPO0:=1;
+
+END_IF;
+
+(* SE RESETEA LA ORDEN DE ABORTAR LAS MSTR UN CICLO DESPUES DE ACTIVARLAS *)
+(*IF ABORTAR_ETH_REQ OR ABORTAR_ETH_REQ_TE OR ABORTAR_ETH_REG_EQ THEN
+ABORTAR_ETH_REQ:=0;
+	ABORTAR_ETH_REQ_TE:=0;
+	ABORTAR_ETH_REG_EQ:=0;
+END_IF;*)
+
+(* ELECCION DE TARJETA NOE DE ETHERNET PARA LA COMUNICACION CON EL SGC *)
+
+IF WTB5.BIT0 OR WTB5.BIT2 THEN
+
+	NOE1:=1;
+	NOE2:=0;
+
+	(*CONTROL_ETH_TE[5]:=16#FE00; (* FE= 254 SLOT DE LA NOE CUANDO ESTA INTEGRADO EN LA CPU *)
+	(*CONTROL_ETH[5]:=16#FE00; (* FE= 254 SLOT DE LA NOE CUANDO ESTA INTEGRADO EN LA CPU *)
+	(*CONTROL_ETH_EQ[5]:=16#FE00; *)(* FE= 254 SLOT DE LA NOE CUANDO ESTA INTEGRADO EN LA CPU *)
+END_IF;
+
+IF WTB5.BIT1 OR WTB5.BIT3 THEN
+
+	NOE2:=1;
+	NOE1:=0;
+	
+	(*CONTROL_ETH_TE[5]:=16#0400;
+	CONTROL_ETH[5]:=16#0400;
+	CONTROL_ETH_EQ[5]:=16#0400;  *)
+END_IF;
+
+(* LA VARIABLE CONTROL_IP LA GENERO PARA UTILIZAR EL LAS SEC DE FBD DE COMUNICACIONES*)
+
+IF EQUIPO0=1 AND (NOE1 OR NOE2) THEN
+	CONTROL_IP:= 0;
+END_IF;
+
+IF EQUIPO1=1 AND NOE1 THEN
+	CONTROL_IP:= 1;
+END_IF;
+
+IF EQUIPO2=1 AND NOE2 THEN
+	CONTROL_IP:= 2;
+END_IF;
+
+IF EQUIPO3=1 AND NOE1 THEN
+	CONTROL_IP:= 3;
+END_IF;
+
+IF EQUIPO4=1 AND NOE2 THEN
+	CONTROL_IP:= 4;
+END_IF;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_MODO_EXPLOTACION" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>WTB38 (IN := (INT_TO_WORD(M_R_MODO_EXPLOTACION)));
+IF WTB38.BIT15 AND ESCRITURAS_ETH_REQ=0 THEN
+	M_E:=WTB38.BIT0;
+	WTB38 (IN := (INT_TO_WORD(ESTADO_COMUNIC_ACTIVA_LECTURA)));
+	IF M_E=1 AND WTB38.BIT14=0 THEN
+		ESTADO_COMUNIC_ACTIVA_WORD:=INT_TO_WORD(ESTADO_COMUNIC_ACTIVA_LECTURA);
+		ESTADO_COMUNIC_ACTIVA_WORD:=ESTADO_COMUNIC_ACTIVA_WORD XOR 16#4000;
+		ESTADO_COMUNIC_ACTIVA_LECTURA:=WORD_TO_INT(ESTADO_COMUNIC_ACTIVA_WORD);
+	END_IF;
+	IF M_E=0 AND WTB38.BIT14=1 THEN
+		ESTADO_COMUNIC_ACTIVA_WORD:=INT_TO_WORD(ESTADO_COMUNIC_ACTIVA_LECTURA);
+		ESTADO_COMUNIC_ACTIVA_WORD:=ESTADO_COMUNIC_ACTIVA_WORD XOR 16#4000;
+		ESTADO_COMUNIC_ACTIVA_LECTURA:=WORD_TO_INT(ESTADO_COMUNIC_ACTIVA_WORD);
+	END_IF;
+	M_R_MODO_EXPLOTACION:=0;
+END_IF;
+
+
+(**************************************************************************************)
+(******   NOVER LOS DATOS DE ENTRADAS DIGITALES A LA ZONA DE LECTURA CON M_E=1   ******)
+(**************************************************************************************)
+
+IF M_E=1 THEN
+	FOR H:=1 TO NUM_TARJETAS16_ED DO
+		DIGITAL_LECTURA[H]:=DIGITAL_ACTUAL[H];
+	END_FOR; 
+END_IF;
+
+(****************************************************************************************)
+(******   NOVER LOS DATOS DE DIGITALES CALCULADAS A LA ZONA DE LECTURA CON M_E=1   ******)
+(****************************************************************************************)
+
+IF M_E=1 THEN
+	FOR H:=1 TO 20 DO
+		DIGITAL_CALCULADAS_LECTURA[H]:=DIGITAL_CALCULADAS_ACTUAL[H];
+	END_FOR; 
+END_IF;
+
+
+(*************************************************************************************)
+(******   NOVER LOS DATOS DE SALIDAS DIGITALES A LA ZONA DE LECTURA CON M_E=1   ******)
+(*************************************************************************************)
+
+IF M_E=1 THEN
+	FOR H:=1 TO NUM_TARJETAS16_SD DO
+		SALIDAS_DIGITALES_LECTURA[H]:=SALIDAS_DIGITALES_ACTUAL[H];
+	END_FOR; 
+END_IF;
+
+(*******************************************************************************)
+(******   NOVER LOS DATOS DE LOS EQUIPOS A LA ZONA DE LECTURA CON M_E=1   ******)
+(*******************************************************************************)
+
+IF M_E=1 THEN
+	FOR H:=1 TO 40 DO
+		ANALOGICAS_EQUIPOS_LECTURA[H]:=ANALOGICAS_EQUIPOS_ACTUAL[H];
+	END_FOR;
+END_IF;
+
+
+(*******************************************************************************)
+(******   NOVER LOS DATOS DE LOS EQUIPOS A LA ZONA DE LECTURA CON M_E=1   ******)
+(*******************************************************************************)
+(* 15-3-2017 por orden de JAVIER MUNGUIRA SE ANULA EL ENCOLAMIENTO Y EL ENVIO ESPONTANEO DE LAS 
+MEDIDAS DE LOS EQUIPOS, PARA QUE EL SCADA LAS PUEDA LEER CUANDO QUIERA,
+POR LO TANTO DA IGUAL QUE EL MODO EXPLOTACION POR ENVIO ESPONTANEO ("M_E=0") YA QUE AL ESTAR ANULADO EL 
+ENVIO ESPONTANEO PARA LAS MEDIDAS DE EQUIPOS SE DEBEN PONER A SU DISPOSICION EN LA ZONA DE LECTURA *)
+
+IF M_E=1 OR ANULADO_ENVIO_MEDIDAS_EQ THEN
+	ANALOGICAS_EQUIPOS_1_16:=ANALOGICAS_CONTROL_EQUIPOS;
+	FOR H:=1 TO 40 DO
+		ANALOGICAS_EQUIPO1[H]:=ANALOGICAS_EQUIPO1_ACTUAL[H];
+	END_FOR;
+	FOR H:=1 TO 40 DO
+		ANALOGICAS_EQUIPO2[H]:=ANALOGICAS_EQUIPO2_ACTUAL[H];
+	END_FOR;
+END_IF;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_COMUNICACION" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*ETHERNET: 
+Se supone que funciona de la siguiente manera :
+- cuando se detecta que la ETH no está ocupada ,es decir , está LIBRE,
+se puede transmitir el mensaje.
+- Parece ser que la cantidad máxima de registros a transmitir es de 100 
+registros*)
+
+(*COMUNICACIONES VIA ETHERNET CON EL SGC*)
+    
+ADDM1 := MUX (K := CONTROL_IP,
+                IN0 := IP_NOE_EQUIPO0,
+                IN1 := IP_NOE1_EQUIPO1,
+		IN2 := IP_NOE2_EQUIPO2,
+		IN3 := IP_NOE1_EQUIPO3,
+		IN4 := IP_NOE2_EQUIPO4);
+
+IF ESCRITURAS_ETH_REQ THEN
+	WRITE_VAR (ADR := ADDM (IN := ADDM1),
+	           OBJ := '%MW',
+	           NUM := WORD_TO_DINT(ESCRITURAS_ETH_SLAVEREG),
+	           NB := WORD_TO_INT(ESCRITURAS_ETH_NO_REG),
+	           EMIS := BUF_SAL,
+	           GEST := GESTION_COM);
+END_IF;
+
+ESCRITURAS_ETH_DONE:=(GESTION_COM[1].0 AND %S5) AND (GESTION_COM[2]=0);
+ESCRITURAS_ETH_ERROR:=(GESTION_COM[2]&lt;&gt;0) AND %S6;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_MANDOS_VIGILANCIA" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(******   MANDO 1   ******)
+  
+READ4X(IN:= DIR_ESCRITURA_SGC+2);
+MANDO_1 := INT_TO_WORD(READ4X.out);
+
+WTB6(IN:=MANDO_1);
+
+IF WTB6.bit15 THEN
+	READ4X(IN:= DIR_ESCRITURA_SGC);
+	NMANDO_1 :=READ4X.out;
+	READ4X(IN:= DIR_ESCRITURA_SGC+1);
+	TM1:=READ4X.out;
+	mando_temporizado[NMANDO_1]:=wtb6.bit0; (* 1= mando temporizado; 0= mando de estado *)
+	mando_sp_temporiz[NMANDO_1]:=TM1;      (* temporización mando si es temporizado *)
+	mando_pv_temporiz[NMANDO_1]:=TM1;
+	SALIDA[NMANDO_1]:=WTB6.bit1;            (* 1= activar; 0= desactivar *)
+	                                       (* Para que funcione con mando temporizado
+	                                          debe escribirse como orden 8003H
+	                                          bit 0 (mando temporizado)
+	                                          bit 1 (estado de la salida a temporizar)
+	                                          bit 15(indicación del mensaje nuevo) *)
+	mando_ed_pv_temporiz[NMANDO_1]:=mando_ed_sp_temporiz[NMANDO_1];
+	ed_vigilancia[NMANDO_1]:=FALSE;
+	WRITE4X(stack:=DIR_ESCRITURA_SGC+2,in:= 0);
+	ALGO_RECIBIDO:=1;
+END_IF;	
+
+(******   MANDO 2   ******)
+READ4X(IN:=DIR_ESCRITURA_SGC+5);MANDO_2:=INT_TO_WORD(READ4X.out);
+
+WTB6(IN:=MANDO_2);
+
+IF WTB6.bit15 THEN
+	READ4X(IN:= DIR_ESCRITURA_SGC+3);
+	NMANDO_2 := READ4X.out;
+	READ4X(IN:= DIR_ESCRITURA_SGC+4);
+	TM2 :=READ4X.out;
+	mando_temporizado[NMANDO_2]:=wtb6.bit0;
+	mando_sp_temporiz[NMANDO_2]:=TM2;
+	mando_pv_temporiz[NMANDO_2]:=TM2;
+	SALIDA[NMANDO_2]:=WTB6.bit1;
+	mando_ed_pv_temporiz[NMANDO_2]:=mando_ed_sp_temporiz[NMANDO_2];
+	ed_vigilancia[NMANDO_2]:=FALSE;
+	WRITE4X(stack:=DIR_ESCRITURA_SGC+5,in:= 0);
+	ALGO_RECIBIDO:=1;
+END_IF;	
+
+(************************************************************************************)
+(******   ASIGNACION DE LOS MANDOS A LAS SALIDAS (VIGILANCIA DE LAS SALIDAS)   ******)
+(************************************************************************************)
+
+K:=NUM_TARJETAS16_SD*16;(* "NUM_TARJETAS16_SD: numero de tarjetas de salida como si fueran de 16 bits" *)
+FOR I:=1 TO K DO
+	IF mando_en_curso[I]=0 AND SALIDA[I]=0 AND mando_temporizado[I]=1 THEN 
+		mando_ed_pv_temporiz[I]:=mando_ed_sp_temporiz[I];  (*CARGAMOS LOS VALORES INICIALES PARA CUENDO TENGAMOS UNA SALIDA*)
+		mando_pv_temporiz[I]:=mando_sp_temporiz[I];
+	END_IF;
+
+	IF SALIDA[I] AND mando_temporizado[I] THEN
+		mando_en_curso[I]:=TRUE;
+	END_IF;
+	(*Mando temporizado*)
+	IF mando_en_curso[I] AND mando_temporizado[I] THEN  
+		IF REG_100_MSG AND mando_pv_temporiz[I]&gt;0 THEN  (*si el tiempo del impulso no ha terminado*)
+			mando_pv_temporiz[I]:=mando_pv_temporiz[I]-1; (*seguimos temporizando el impulso*)
+		END_IF;
+		IF mando_pv_temporiz[I]=0 AND (mando_sp_temporiz[I]&gt;0)  THEN   (*una vez terminado el tiempo del impulso*)
+			SALIDA[I]:=FALSE;             (* quitamos la salida del mando*)
+			mando_en_curso[I]:=FALSE;
+		END_IF;	
+	END_IF;
+END_FOR;
+
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_NUMEROS_MANDOS_SD" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>
+%Q0.6.0:=SALIDA[1] AND NOT SEGURIDAD;
+%Q0.6.1:=SALIDA[2] AND NOT SEGURIDAD;
+%Q0.6.2:=SALIDA[3] AND NOT SEGURIDAD;
+%Q0.6.3:=SALIDA[4] AND NOT SEGURIDAD;
+%Q0.6.4:=SALIDA[5] AND NOT SEGURIDAD;
+%Q0.6.5:=SALIDA[6] AND NOT SEGURIDAD;
+%Q0.6.6:=SALIDA[7] AND NOT SEGURIDAD;
+%Q0.6.7:=SALIDA[8] AND NOT SEGURIDAD;
+%Q0.6.8:=SALIDA[9] AND NOT SEGURIDAD;
+%Q0.6.9:=SALIDA[10] AND NOT SEGURIDAD;
+%Q0.6.10:=SALIDA[11] AND NOT SEGURIDAD;
+%Q0.6.11:=SALIDA[12] AND NOT SEGURIDAD;
+%Q0.6.12:=SALIDA[13] AND NOT SEGURIDAD;
+%Q0.6.13:=SALIDA[14] AND NOT SEGURIDAD;
+%Q0.6.14:=SALIDA[15] AND NOT SEGURIDAD;
+%Q0.6.15:=SALIDA[16] AND NOT SEGURIDAD;
+%Q0.7.0:=SALIDA[17] AND NOT SEGURIDAD;
+%Q0.7.1:=SALIDA[18] AND NOT SEGURIDAD;
+%Q0.7.2:=SALIDA[19] AND NOT SEGURIDAD;
+%Q0.7.3:=SALIDA[20] AND NOT SEGURIDAD;
+%Q0.7.4:=SALIDA[21] AND NOT SEGURIDAD;
+%Q0.7.5:=SALIDA[22] AND NOT SEGURIDAD;
+%Q0.7.6:=SALIDA[23] AND NOT SEGURIDAD;
+%Q0.7.7:=SALIDA[24] AND NOT SEGURIDAD;
+%Q0.7.8:=SALIDA[25] AND NOT SEGURIDAD;
+%Q0.7.9:=SALIDA[26] AND NOT SEGURIDAD;
+%Q0.7.10:=SALIDA[27] AND NOT SEGURIDAD;
+%Q0.7.11:=SALIDA[28] AND NOT SEGURIDAD;
+%Q0.7.12:=SALIDA[29] AND NOT SEGURIDAD;
+%Q0.7.13:=SALIDA[30] AND NOT SEGURIDAD;
+%Q0.7.14:=SALIDA[31] AND NOT SEGURIDAD;
+%Q0.7.15:=SALIDA[32] AND NOT SEGURIDAD;
+
+</STSource>
+	</program>
+	<program>
+		<identProgram name="BANDA_TRATA_EQUIPOS" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(* SELECCION DEL NUMERO DE LA BANDA DE TRATAMIENTO A CARGAR *)
+  
+ WTB10 (IN := (INT_TO_WORD(B_T_EA_1_16_EQ)));
+  
+ BANDA_TRATAMIENTO_EQ[1]:=WTB10.BIT0;
+ BANDA_TRATAMIENTO_EQ[2]:=WTB10.BIT1;
+ BANDA_TRATAMIENTO_EQ[3]:=WTB10.BIT2;
+ BANDA_TRATAMIENTO_EQ[4]:=WTB10.BIT3;
+ BANDA_TRATAMIENTO_EQ[5]:=WTB10.BIT4;
+ BANDA_TRATAMIENTO_EQ[6]:=WTB10.BIT5;
+ BANDA_TRATAMIENTO_EQ[7]:=WTB10.BIT6;
+ BANDA_TRATAMIENTO_EQ[8]:=WTB10.BIT7;
+ BANDA_TRATAMIENTO_EQ[9]:=WTB10.BIT8;
+ BANDA_TRATAMIENTO_EQ[10]:=WTB10.BIT9;
+  
+ (* 15-3-2017 Por orden de JAVIER MUNGUIRA SE ANULA EL ENCOLADO Y ENVIO ESPONTANEO DE LAS MEDIDAS DE EQUIPOS
+    ,PARA QUE EL SCADA LAS LEA CUANDO QUIERA,
+    POR LO QUE TAMBIEN ANULAMOS LAS BANDAS DE TRATAMIENTO *)
+IF ANULADO_ENVIO_MEDIDAS_EQ THEN   (* INICIO SECCION ANULADA *)  
+ (* CARGA DE BANDA DE TRATAMIENTO VALORES ANALOGICOS DE EQUIPO *)
+	WTB10 (IN := (INT_TO_WORD(M_R_BANDA_TRATAMIENTO_EQUIPOS)));
+	IF WTB10.BIT15 THEN
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_1 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_1[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_2 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_2[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_3 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_3[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_4 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_4[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_5 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_5[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_6 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_6[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_7 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_7[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_8 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_8[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_9 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_9[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		IF M_R_BANDA_TRATAMIENTO_EQUIPOS=EQUIPO_10 THEN
+			FOR I:=1 TO 40 DO
+				IF BANDA_TRATAMIENTO_EQ[I] THEN
+					B_TRATA_EQUIPOS_PLC_10[I]:=B_TRATA_EQUIPOS[I];
+				END_IF;
+			END_FOR;
+		END_IF;
+		ALGO_RECIBIDO:=1;
+	END_IF;
+ 
+END_IF;  (* FIN DE SECCION ANULADA *)
+  
+M_R_BANDA_TRATAMIENTO_EQUIPOS:=0;(*RESET BIT 15 DE BANDA DE TRATAMIENTO EQUIPOS*)
+</STSource>
+	</program>
+	<program>
+		<identProgram name="LECTURAS_SACIS_MB" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*LA LECTURA MB DE EQUIPOS SE REALIZA EL LAS SECCIONES DE FB DERIVADOS  "LECTURAS_MB_READ_VAR_M340"*)
+
+LECTURAS_SACIS_FB(NUMERO_LECTURAS:=Numero_lecturas_READ_VAR,
+		  NUMERO_REINTENTOS:=Numero_reintentos_READ_VAR,
+		  NUEVO_COMIENZO_INDEXADO:=INDEX_READVAR_TRAS_PETICION,
+		  HABILITAR:=1,
+		  ARRAY_LECTURAS:=Lecturas_SACIS,
+		  ARRAY_GEST:=Param_gestion_READ_VAR,
+		  MODIFICAR_PETICION:=MODIFICA_ORDEN_PETICION_READVAR,
+		  CONTAJE_INDEX_READ_VAR:=Contaje_INDEX_Read_Var,
+		  BUSY =&gt; Ocupado_lecturas_READ_VAR,
+                  INDEX =&gt; Indice_lectura_READ_VAR);
+</STSource>
+	</program>
+	<program>
+		<identProgram name="FILTRAR_COM_EQUIPOS" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*Cada equipo de medida tiene 4 consultas (a 4 zonas de memoria)*)
+
+ESTADO_EQUIPOS[1] := AND (IN1 := Lecturas_SACIS[1].Fallo,
+                    	  IN2 := Lecturas_SACIS[2].Fallo,
+			  IN3 := Lecturas_SACIS[3].Fallo,
+			  IN4 := Lecturas_SACIS[4].Fallo,
+			  IN5 := FALLO_PUERTO_SERIE);
+
+ESTADO_EQUIPOS[2] := AND (IN1 := Lecturas_SACIS[5].Fallo,
+                    	  IN2 := Lecturas_SACIS[6].Fallo,
+			  IN3 := Lecturas_SACIS[7].Fallo,
+			  IN4 := Lecturas_SACIS[8].Fallo,
+			  IN5 := FALLO_PUERTO_SERIE);
+
+FBI_24_28(IN:=ESTADO_EQUIPOS[1],
+	  PT:=t#60s);
+FBI_24_22(IN:=ESTADO_EQUIPOS[2],
+	  PT:=t#60s);
+
+ANALOGICAS_CONTROL_EQUIPOS := BIT_TO_WORD (BIT0 := FBI_24_28.Q,
+		                           BIT1 := FBI_24_22.Q,
+		                           BIT2 := FALSE,
+		                           BIT3 := FALSE,
+		                           BIT4 := FALSE,
+		                           BIT5 := FALSE,
+		                           BIT6 := FALSE,
+		                           BIT7 := FALSE,
+		                           BIT8 := FALSE,
+		                           BIT9 := FALSE,
+		                           BIT10 := FALSE,
+		                           BIT11 := FALSE,
+		                           BIT12 := FALSE,
+		                           BIT13 := FALSE,
+		                           BIT14 := FALSE,
+		                           BIT15 := FALSE);
+</STSource>
+	</program>
+	<program>
+		<identProgram name="NUM_LECTURAS_MB" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>FOR i:=1 TO 100 DO
+
+	IF Lecturas_SACIS[i].Terminal='' THEN
+		EXIT;
+	ELSE
+		Numero_lecturas_READ_VAR:=i;
+	END_IF;
+
+END_FOR;
+
+(*FOR j:=1 TO 100 DO
+
+	IF Lecturas_ANALIZADOR[j].Terminal='' THEN
+		EXIT;
+	ELSE
+		Numero_lecturas_READ_VAR_cvm:=j;
+	END_IF;
+END_FOR;*)
+</STSource>
+	</program>
+	<program>
+		<identProgram name="TRATAMIENTO_MEDIDAS_EQ" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*SACI MAR144*)
+
+    (* Para que sea similar a la integracion de SACIS MAR144 de programas Concept de Barajas  *)
+    (* Como Lecturas_SACIS es un Array tipo INT y en concept llega tipo Real se utiliza el PUT4X para luego pasarlo a Real *)
+
+(*EQUIPO_1 y EQUIPO_2*)(* anulados 29-11-2017, ya que se cambian los SACI por SOCOMEC *)
+
+(*EQUIPO_1*)(* Se cambia el SACI por un SOCOMEC *)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[1]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[2]));
+SOCOMEC1_V12:=((aux_1*65535.0)+aux_2)/100.0; 
+ANALOGICAS_EQUIPO1_ACTUAL[1] := REAL_TO_INT (IN := SOCOMEC1_V12);   (*SACI1_V12*)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[3]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[4]));
+SOCOMEC1_V23:=((aux_1*65535.0)+aux_2)/100.0; 
+ANALOGICAS_EQUIPO1_ACTUAL[2] := REAL_TO_INT (IN := SOCOMEC1_V23);   (*SACI1_V23*)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[5]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[6]));
+SOCOMEC1_V31:=((aux_1*65535.0)+aux_2)/100.0; 
+ANALOGICAS_EQUIPO1_ACTUAL[3] := REAL_TO_INT (IN := SOCOMEC1_V31);   (*SACI1_V31*)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[15]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[16]));
+SOCOMEC1_IR:=((aux_1*65535.0)+aux_2)/1000.0; 
+ANALOGICAS_EQUIPO1_ACTUAL[4] := REAL_TO_INT (IN := SOCOMEC1_IR);(*SACI1_IR*)(* mA *)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[17]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[18]));
+SOCOMEC1_IS:=((aux_1*65535.0)+aux_2)/1000.0; 
+ANALOGICAS_EQUIPO1_ACTUAL[5] := REAL_TO_INT (IN := SOCOMEC1_IS);(*SACI1_IS*)(* mA *)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[19]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[1].Array_destino[20]));
+SOCOMEC1_IT:=((aux_1*65535.0)+aux_2)/1000.0; 
+ANALOGICAS_EQUIPO1_ACTUAL[6] := REAL_TO_INT (IN := SOCOMEC1_IT);(*SACI1_IT*)(* mA *)
+
+aux_3:= INT_TO_UINT (IN := Lecturas_SACIS[2].Array_destino[1]); 
+aux_4:= INT_TO_UINT (IN := Lecturas_SACIS[2].Array_destino[2]); 
+aux_1 := UINT_TO_REAL (IN := aux_3);   
+aux_2 := UINT_TO_REAL (IN := aux_4);  
+SOCOMEC1_P_TOTAL:=(aux_1*65535.0)+aux_2;
+ANALOGICAS_EQUIPO1_ACTUAL[7] := REAL_TO_INT (IN := 10.0*SOCOMEC1_P_TOTAL);  (*SUM POTENCIA ACTIVA +/- *)(*KW/100*)
+
+aux_1:=INT_TO_REAL(Lecturas_SACIS[2].Array_destino[8]);
+SOCOMEC1_COSENO:=aux_1/1000.0;
+ANALOGICAS_EQUIPO1_ACTUAL[8] := REAL_TO_INT (IN := 100.0*SOCOMEC1_COSENO);(*DIR COSENO*)(*0,001*)
+
+ANALOGICAS_EQUIPO1_ACTUAL[9] := Lecturas_SACIS[3].Array_destino[1]; (*DIR E. ACTIVA*)
+ANALOGICAS_EQUIPO1_ACTUAL[10] := Lecturas_SACIS[3].Array_destino[2];(*DIR E. ACTIVA*)
+ANALOGICAS_EQUIPO1_ACTUAL[11] := Lecturas_SACIS[3].Array_destino[3];(*DIR E. REACTIVA*)
+ANALOGICAS_EQUIPO1_ACTUAL[12] := Lecturas_SACIS[3].Array_destino[4];(*DIR E. REACTIVA*)
+
+ANALOGICAS_EQUIPO1_ACTUAL[13] := Lecturas_SACIS[4].Array_destino[1];(*THD IR*)(*%/10*)
+ANALOGICAS_EQUIPO1_ACTUAL[14] := Lecturas_SACIS[4].Array_destino[2];(*THD IS*)(*%/10*)
+ANALOGICAS_EQUIPO1_ACTUAL[15] := Lecturas_SACIS[4].Array_destino[3];(*THD IT*)(*%/10*)
+ANALOGICAS_EQUIPO1_ACTUAL[16] := Lecturas_SACIS[4].Array_destino[4];(*THD IN*)(*%/10*)
+
+(******************************************************************************************************)
+
+(*EQUIPO_2*)(* Se cambia el SACI por un SOCOMEC *)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[1]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[2]));
+SOCOMEC2_V12:=((aux_1*65535.0)+aux_2)/100.0; 
+ANALOGICAS_EQUIPO2_ACTUAL[1] := REAL_TO_INT (IN := SOCOMEC2_V12);   (*SACI1_V12*)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[3]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[4]));
+SOCOMEC2_V23:=((aux_1*65535.0)+aux_2)/100.0; 
+ANALOGICAS_EQUIPO2_ACTUAL[2] := REAL_TO_INT (IN := SOCOMEC2_V23);   (*SACI1_V23*)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[5]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[6]));
+SOCOMEC2_V31:=((aux_1*65535.0)+aux_2)/100.0; 
+ANALOGICAS_EQUIPO2_ACTUAL[3] := REAL_TO_INT (IN := SOCOMEC2_V31);   (*SACI1_V31*)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[15]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[16]));
+SOCOMEC2_IR:=((aux_1*65535.0)+aux_2)/1000.0; 
+ANALOGICAS_EQUIPO2_ACTUAL[4] := REAL_TO_INT (IN := SOCOMEC2_IR);(*SACI1_IR*)(* mA *)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[17]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[18]));
+SOCOMEC2_IS:=((aux_1*65535.0)+aux_2)/1000.0; 
+ANALOGICAS_EQUIPO2_ACTUAL[5] := REAL_TO_INT (IN := SOCOMEC2_IS);(*SACI1_IS*)(* mA *)
+
+aux_1:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[19]));
+aux_2:=UINT_TO_REAL(INT_TO_UINT(Lecturas_SACIS[5].Array_destino[20]));
+SOCOMEC2_IT:=((aux_1*65535.0)+aux_2)/1000.0; 
+ANALOGICAS_EQUIPO2_ACTUAL[6] := REAL_TO_INT (IN := SOCOMEC2_IT);(*SACI1_IT*)(* mA *)
+
+aux_3:= INT_TO_UINT (IN := Lecturas_SACIS[6].Array_destino[1]); 
+aux_4:= INT_TO_UINT (IN := Lecturas_SACIS[6].Array_destino[2]); 
+aux_1 := UINT_TO_REAL (IN := aux_3);   
+aux_2 := UINT_TO_REAL (IN := aux_4);  
+SOCOMEC2_P_TOTAL:=(aux_1*65535.0)+aux_2;
+ANALOGICAS_EQUIPO2_ACTUAL[7] := REAL_TO_INT (IN := 10.0*SOCOMEC2_P_TOTAL);  (*SUM POTENCIA ACTIVA +/- *)(*KW/100*)
+
+aux_1:=INT_TO_REAL(Lecturas_SACIS[6].Array_destino[8]);
+SOCOMEC2_COSENO:=aux_1/1000.0;
+ANALOGICAS_EQUIPO2_ACTUAL[8] := REAL_TO_INT (IN := 100.0*SOCOMEC2_COSENO);(*DIR COSENO*)(*0,001*)
+
+ANALOGICAS_EQUIPO2_ACTUAL[9] := Lecturas_SACIS[7].Array_destino[1]; (*DIR E. ACTIVA*)
+ANALOGICAS_EQUIPO2_ACTUAL[10] := Lecturas_SACIS[7].Array_destino[2];(*DIR E. ACTIVA*)
+ANALOGICAS_EQUIPO2_ACTUAL[11] := Lecturas_SACIS[7].Array_destino[3];(*DIR E. REACTIVA*)
+ANALOGICAS_EQUIPO2_ACTUAL[12] := Lecturas_SACIS[7].Array_destino[4];(*DIR E. REACTIVA*)
+
+ANALOGICAS_EQUIPO2_ACTUAL[13] := Lecturas_SACIS[8].Array_destino[1];(*THD IR*)(*%/10*)
+ANALOGICAS_EQUIPO2_ACTUAL[14] := Lecturas_SACIS[8].Array_destino[2];(*THD IS*)(*%/10*)
+ANALOGICAS_EQUIPO2_ACTUAL[15] := Lecturas_SACIS[8].Array_destino[3];(*THD IT*)(*%/10*)
+ANALOGICAS_EQUIPO2_ACTUAL[16] := Lecturas_SACIS[8].Array_destino[4];(*THD IN*)(*%/10*)
+</STSource>
+	</program>
+	<program>
+		<identProgram name="METER_EN_COLA_EQUIPOS" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(* 15-3-2017 ANULAMOS ESTA SECCION por orden de JAVIER MUNGUIRA 
+   PARA QUE NO HAYA ENVIO ESPONTANEO DE MEDIDAS DE EQUIPOS NI ENCOLAMIENTO DE DICHAS MEDIDAS 
+   Y LOS PUEDA LEER DESDE EL SCADA CADA INTERVALO QUE QUIERA *)
+
+IF ANULADO_ENVIO_MEDIDAS_EQ THEN  (* INICIO DE SECCION ANULADA *)
+
+	IF PRIMER_CICLO=0 AND AUX_EQUIPOS=0 AND COMUNIC_EQUIPOS_OK=0 AND M_E=0 THEN	
+		IF ANALOGICAS_CONTROL_EQUIPOS&lt;&gt;ANALOGICAS_EQ_ANTERIOR THEN
+			MATRIZ_ANALOGICAS_EQ_WORD:=ANALOGICAS_CONTROL_EQUIPOS XOR ANALOGICAS_EQ_ANTERIOR;
+			MATRIZ_ANALOGICAS_EQ:=WORD_TO_INT(MATRIZ_ANALOGICAS_EQ_WORD);
+			CAMBIOS_EQUIPOS:=0;
+			IF CAMBIOS_EQUIPOS=0 THEN
+				BUF_EQUIPOS[1]:=CAMBIOS_EQUIPOS;
+				BUF_EQUIPOS[2]:=DIA_SEMANA_PLC;
+				BUF_EQUIPOS[3]:=MES_PLC;
+				BUF_EQUIPOS[4]:=DIA_PLC;
+				BUF_EQUIPOS[5]:=AÑO_PLC;
+				BUF_EQUIPOS[6]:=HORAS_PLC;
+				BUF_EQUIPOS[7]:=MINUTOS_PLC;
+				BUF_EQUIPOS[8]:=SEGUNDOS_PLC;
+				BUF_EQUIPOS[9]:=MSEG_PLC;
+				BUF_EQUIPOS[10]:=0;
+				BUF_EQUIPOS[11]:=WORD_TO_INT (IN:=ANALOGICAS_CONTROL_EQUIPOS);
+				BUF_EQUIPOS[12]:=MATRIZ_ANALOGICAS_EQ;
+				ESCRITURAS_ETH_REQ_EQ:=1;
+				ESCRITURAS_ETH_NO_REG_EQ:=12;
+				AUX_EQ:=0;
+				COMUNIC_EQUIPOS_OK:=1;		
+			END_IF;
+		END_IF;	
+		AUX_EQUIPOS:=AUX_EQUIPOS+1;    
+	END_IF;
+
+	IF PRIMER_CICLO=0 AND AUX_EQUIPOS=1 AND COMUNIC_EQUIPOS_OK=0 AND M_E=0 THEN	
+		FOR B2:=1 TO 40 DO
+			IF ESTADO_EQUIPOS[1] AND ((ABS(ANALOGICAS_EQUIPO1_ACTUAL[B2]-ANALOGICAS_EQUIPO1_ANTERIOR[B2])&gt;B_TRATA_EQUIPOS_PLC_1[B2])) THEN
+				CAMBIOS_EQUIPOS:=1;
+			END_IF;
+		END_FOR;
+		IF CAMBIOS_EQUIPOS=1 THEN
+			FOR B3:=1 TO 40 DO
+				BUF_EQUIPOS[1]:=CAMBIOS_EQUIPOS;
+				BUF_EQUIPOS[2]:=DIA_SEMANA_PLC;
+				BUF_EQUIPOS[3]:=MES_PLC;
+				BUF_EQUIPOS[4]:=DIA_PLC;
+				BUF_EQUIPOS[5]:=AÑO_PLC;
+				BUF_EQUIPOS[6]:=HORAS_PLC;
+				BUF_EQUIPOS[7]:=MINUTOS_PLC;
+				BUF_EQUIPOS[8]:=SEGUNDOS_PLC;
+				BUF_EQUIPOS[9]:=MSEG_PLC;
+				BUF_EQUIPOS[10]:=0;
+				B4:=B3+10;
+				BUF_EQUIPOS[B4]:=ANALOGICAS_EQUIPO1_ACTUAL[B3];
+				COMUNIC_EQUIPOS_OK:=1;
+				AUX_EQ:=0;
+				ANALOGICAS_EQUIPO1_ANTERIOR[B3]:=ANALOGICAS_EQUIPO1_ACTUAL[B3];
+			END_FOR;
+			ESCRITURAS_ETH_REQ_EQ:=0;  (* DESABILITADO ESPONTANEAS DE EQUIPOS, SE HACE UNA LECTURA TEMPORAL SCADA *)
+			ESCRITURAS_ETH_NO_REG_EQ:=50;
+		END_IF;
+		AUX_EQUIPOS:=AUX_EQUIPOS+1;
+	END_IF;
+	CAMBIOS_EQUIPOS:=0;
+
+	IF PRIMER_CICLO=0 AND AUX_EQUIPOS=2 AND COMUNIC_EQUIPOS_OK=0 AND M_E=0 THEN	
+		FOR B2:=1 TO 40 DO
+			IF  ESTADO_EQUIPOS[2] AND ((ABS(ANALOGICAS_EQUIPO2_ACTUAL[B2]-ANALOGICAS_EQUIPO2_ANTERIOR[B2])&gt;B_TRATA_EQUIPOS_PLC_2[B2])) THEN
+				CAMBIOS_EQUIPOS:=2;
+			END_IF;
+		END_FOR;	
+		IF CAMBIOS_EQUIPOS=2 THEN
+			FOR B3:=1 TO 40 DO
+				BUF_EQUIPOS[1]:=CAMBIOS_EQUIPOS;
+				BUF_EQUIPOS[2]:=DIA_SEMANA_PLC;
+				BUF_EQUIPOS[3]:=MES_PLC;
+				BUF_EQUIPOS[4]:=DIA_PLC;
+				BUF_EQUIPOS[5]:=AÑO_PLC;
+				BUF_EQUIPOS[6]:=HORAS_PLC;
+				BUF_EQUIPOS[7]:=MINUTOS_PLC;
+				BUF_EQUIPOS[8]:=SEGUNDOS_PLC;
+				BUF_EQUIPOS[9]:=MSEG_PLC;
+				BUF_EQUIPOS[10]:=0;
+				B4:=B3+10;
+				BUF_EQUIPOS[B4]:=ANALOGICAS_EQUIPO2_ACTUAL[B3];
+				COMUNIC_EQUIPOS_OK:=1;
+				AUX_EQ:=0;
+				ANALOGICAS_EQUIPO2_ANTERIOR[B3]:=ANALOGICAS_EQUIPO2_ACTUAL[B3];
+			END_FOR;
+			ESCRITURAS_ETH_REQ_EQ:=0; (* DESABILITADO ESPONTANEAS DE EQUIPOS, SE HACE UNA LECTURA TEMPORAL SCADA *)
+			ESCRITURAS_ETH_NO_REG_EQ:=50;
+		END_IF;
+		AUX_EQUIPOS:=0;
+	END_IF;
+	CAMBIOS_EQUIPOS:=0;
+	IF COMUNIC_EQUIPOS_OK THEN
+		CICLOS_EQ:=CICLOS_EQ+1;
+	END_IF;
+	IF ESCRITURAS_ETH_DONE_EQ OR ESCRITURAS_ETH_ERROR_EQ OR AUX_EQ THEN
+		ESCRITURAS_ETH_REQ_EQ:=0;
+		AUX_EQ:=1;
+		IF CICLOS_EQ&gt;=50 THEN
+			ESCRITURAS_ETH_REQ_EQ:=0;
+			COMUNIC_EQUIPOS_OK:=0;
+			CICLOS_EQ:=0;
+			AUX_EQ:=0;
+		END_IF;
+	END_IF;
+END_IF; (* FIN DE LA SECCION ANULADA *)
+</STSource>
+	</program>
+	<program>
+		<identProgram name="COMUNIC_EQUIPOS" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(*ETHERNET: 
+Se supone que funciona de la siguiente manera :
+- cuando se detecta que la ETH no está ocupada ,es decir , está LIBRE,
+se puede transmitir el mensaje.
+- Parece ser que la cantidad máxima de registros a transmitir es de 100 
+registros*)
+
+(*COMUNICACIONES VIA ETHERNET CON EL SGC*)
+    
+ADDM1 := MUX (K := CONTROL_IP,
+                IN0 := IP_NOE_EQUIPO0,
+                IN1 := IP_NOE1_EQUIPO1,
+		IN2 := IP_NOE2_EQUIPO2,
+		IN3 := IP_NOE1_EQUIPO3,
+		IN4 := IP_NOE2_EQUIPO4);
+
+IF ESCRITURAS_ETH_REQ_EQ AND ANULADO_ENVIO_MEDIDAS_EQ THEN
+	WRITE_VAR (ADR := ADDM (IN := ADDM1),
+	           OBJ := '%MW',
+	           NUM := WORD_TO_DINT(ESCRITURAS_ETH_SLAVEREG_EQ),
+	           NB := WORD_TO_INT(ESCRITURAS_ETH_NO_REG_EQ),
+	           EMIS := BUF_EQUIPOS,
+	           GEST := GESTION_COM_EQ);
+END_IF;
+
+ESCRITURAS_ETH_DONE_EQ:=(GESTION_COM_EQ[1].0 AND %S5) AND (GESTION_COM_EQ[2]=0);
+ESCRITURAS_ETH_ERROR_EQ:=(GESTION_COM_EQ[2]&lt;&gt;0) AND %S6;
+</STSource>
+	</program>
+	<program>
+		<identProgram name="SECCION_FIN_PRIMER_CICLO" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
+		<STSource>(**********************************)
+(******   FIN PRIMER CICLO   ******)
+(**********************************)
+
+IF PRIMER_CICLO_DATOS_FISICOS_OK=1 AND PRIMER_CICLO_COMUNIC_OK=1 AND PRIMER_CICLO=0 THEN
+	SEGURIDAD:=0;(*ED PARA  QUE SE EJECUTE ALGUN MANDO AL FINALIZAR EL PRIMER CICLO*)
+END_IF;
+
+IF PRIMER_CICLO_DATOS_FISICOS_OK=1 AND PRIMER_CICLO_COMUNIC_OK=1 AND PRIMER_CICLO=0 AND (ESTADO_COMUNIC_ACTIVA_LECTURA&lt;&gt;-32768) AND NOT aux THEN
+	ENLACE_COMUNIC_OK_WORD:=(INT_TO_WORD(ENLACE_COMUNIC_OK_LECTURA));
+	ENLACE_COMUNIC_OK_WORD:=ENLACE_COMUNIC_OK_WORD XOR 16#8000;
+	ENLACE_COMUNIC_OK_LECTURA:=(WORD_TO_INT(ENLACE_COMUNIC_OK_WORD));
+	aux:=1;
+END_IF;
+
+IF PRIMER_CICLO AND PRIMER_CICLO_DATOS_FISICOS_OK=0 THEN
+ 	FOR I:=1 TO NUM_TARJETAS16_ED DO
+	 	IF DIGITAL_LECTURA[I]=DIGITAL_ACTUAL[I] THEN
+	 		AUX_ED_PC[I]:=1;
+	 	END_IF;
+ 	END_FOR;
+ 	FOR I:=1 TO 20 DO
+ 		IF DIGITAL_CALCULADAS_LECTURA[I]=DIGITAL_CALCULADAS_ACTUAL[I] THEN
+ 			AUX_EDC_PC[I]:=1;
+ 		END_IF;
+	END_FOR;
+	FOR I:=1 TO NUM_TARJETAS16_SD DO
+		IF SALIDAS_DIGITALES_LECTURA[I]=SALIDAS_DIGITALES_ACTUAL[I] THEN
+			AUX_SD_PC[I]:=1;
+		END_IF;	
+	END_FOR;
+	
+ 	IF AUX_ED_PC[1] AND AUX_ED_PC[2] AND AUX_ED_PC[3] AND AUX_ED_PC[4] AND
+ 	AUX_ED_PC[5] AND AUX_ED_PC[6] AND AUX_ED_PC[7] AND AUX_ED_PC[8] AND
+ 	AUX_ED_PC[9] AND AUX_ED_PC[10] AND AUX_ED_PC[11] AND AUX_ED_PC[12] 
+	THEN
+ 		AUX_ED:=1;
+ 	END_IF;
+ 	IF AUX_EDC_PC[1] AND AUX_EDC_PC[2] AND AUX_EDC_PC[3] AND AUX_EDC_PC[4] AND
+ 	AUX_EDC_PC[5] AND AUX_EDC_PC[6] AND AUX_EDC_PC[7] AND AUX_EDC_PC[8] AND
+ 	AUX_EDC_PC[9] AND AUX_EDC_PC[10] AND AUX_EDC_PC[11] AND AUX_EDC_PC[12] AND
+ 	AUX_EDC_PC[13] AND AUX_EDC_PC[14] AND AUX_EDC_PC[15] AND AUX_EDC_PC[16] AND
+ 	AUX_EDC_PC[17] AND AUX_EDC_PC[18] AND AUX_EDC_PC[19] AND AUX_EDC_PC[20] 
+	THEN
+ 		AUX_EDC:=1;
+ 	END_IF;
+	IF AUX_ED AND AUX_EDC THEN
+ 		PRIMER_CICLO_DATOS_FISICOS_OK:=1;
+ 	END_IF;
+END_IF;
+
+
+IF PRIMER_CICLO=1 AND PRIMER_CICLO_DATOS_FISICOS_OK=1 THEN
+	IF ESTADO_EQUIPOS[1]=1 THEN
+	   AUX_PRIMER_CICLOA[1]:=1;
+	   ANALOGICAS_EQUIPO1_ANTERIOR:=ANALOGICAS_EQUIPO1;
+	END_IF;
+	IF ESTADO_EQUIPOS[2]=1 THEN
+	   AUX_PRIMER_CICLOA[2]:=1;
+	   ANALOGICAS_EQUIPO2_ANTERIOR:=ANALOGICAS_EQUIPO2;
+	END_IF;
+END_IF;
+ 
+IF AUX_PRIMER_CICLOA[1]=1 AND AUX_PRIMER_CICLOA[2]=1 THEN
+	AUX_PRIMER_CICLOB:=1;
+END_IF;
+
+IF PRIMER_CICLO=1 AND PRIMER_CICLO_DATOS_FISICOS_OK=1 THEN
+ 	PRIMER_CICLO_COMUNIC_OK:=1;
+END_IF;
+
+IF REG_100_MSG AND PRIMER_CICLO=1 AND PRIMER_CICLO_DATOS_FISICOS_OK=1 THEN
+ 	IF NOT AUX_PC THEN
+ 		TEMP_PRIMER_CICLO_EQUIPOS:=TEMP_PRIMER_CICLO;
+ 	END_IF;
+ 	IF AUX_PRIMER_CICLOB=0 AND TEMP_PRIMER_CICLO_EQUIPOS&lt;&gt;0 THEN
+ 		TEMP_PRIMER_CICLO_EQUIPOS:=TEMP_PRIMER_CICLO_EQUIPOS-1;
+ 	END_IF;
+ 	IF TEMP_PRIMER_CICLO_EQUIPOS=0 THEN
+ 		PRIMER_CICLO_COMUNIC_OK:=1;
+ 	END_IF;
+ 	AUX_PC:=1;
+END_IF;
+
+IF PRIMER_CICLO=1 AND PRIMER_CICLO_DATOS_FISICOS_OK=1 AND PRIMER_CICLO_COMUNIC_OK=1 THEN
+	PRIMER_CICLO:=FALSE;
+	AUX_PC:=FALSE;
+	AUX_ED_PC[1]:=0; AUX_ED_PC[2]:=0; AUX_ED_PC[3]:=0; AUX_ED_PC[4]:=0;
+	AUX_ED_PC[5]:=0; AUX_ED_PC[6]:=0; AUX_ED_PC[7]:=0; AUX_ED_PC[8]:=0;
+	AUX_ED_PC[9]:=0; AUX_ED_PC[10]:=0; AUX_ED_PC[11]:=0; AUX_ED_PC[12]:=0;
+	AUX_ED_PC[13]:=0; AUX_ED_PC[14]:=0; AUX_ED_PC[15]:=0; AUX_ED_PC[16]:=0;
+	AUX_ED_PC[17]:=0; AUX_ED_PC[18]:=0; AUX_ED_PC[19]:=0;
+	AUX_EDC_PC[1]:=0; AUX_EDC_PC[2]:=0; AUX_EDC_PC[3]:=0; AUX_EDC_PC[4]:=0;
+	AUX_EDC_PC[5]:=0; AUX_EDC_PC[6]:=0; AUX_EDC_PC[7]:=0; AUX_EDC_PC[8]:=0;
+	AUX_EDC_PC[9]:=0; AUX_EDC_PC[10]:=0; AUX_EDC_PC[11]:=0; AUX_EDC_PC[12]:=0;
+	AUX_EDC_PC[13]:=0; AUX_EDC_PC[14]:=0; AUX_EDC_PC[15]:=0; AUX_EDC_PC[16]:=0;
+	AUX_EDC_PC[17]:=0; AUX_EDC_PC[18]:=0; AUX_EDC_PC[19]:=0; AUX_EDC_PC[20]:=0;
+	AUX_PRIMER_CICLOA[1]:=0; AUX_PRIMER_CICLOA[2]:=0; 
+	AUX_ED:=0;
+	AUX_EDC:=0;
+	AUX_PRIMER_CICLOB:=0;
+END_IF;
+</STSource>
+	</program>
+	<dataBlock>
+		<variables name="BUF_EMISION" typeName="intarraycola"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_7" typeName="INTARRAY40" topologicalAddress="%MW7780"></variables>
+		<variables name="AUX_PRIMER_CICLOB" typeName="BOOL"></variables>
+		<variables name="IP_3_4" typeName="BYTE" topologicalAddress="%MW38">
+			<variableInit value="2#0000_0001"></variableInit>
+		</variables>
+		<variables name="EQUIPO_5" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32752"></variableInit>
+		</variables>
+		<variables name="PRIMER_CICLO_COMUNIC_OK" typeName="BOOL"></variables>
+		<variables name="BUF_AUX_EDC" typeName="intarraycola"></variables>
+		<variables name="BUF_SAL" typeName="intarraycola" topologicalAddress="%MW6000"></variables>
+		<variables name="IP_NOE1_EQUIPO3" typeName="string[35]">
+			<variableInit value="0.1.0{192.1.4.91}"></variableInit>
+		</variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_4" typeName="INTARRAY40" topologicalAddress="%MW7660"></variables>
+		<variables name="SEGUNDOS_PLC" typeName="INT" topologicalAddress="%MW64"></variables>
+		<variables name="COM_LIBRE" typeName="BOOL"></variables>
+		<variables name="WTB20" typeName="WORD_TO_BIT_DFB"></variables>
+		<variables name="SALIDAS_DIGITALES_ANTES_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
+		<variables name="BUF_ENTR" typeName="intarraycola"></variables>
+		<variables name="ESCRITURAS_ETH_REQ_EQ" typeName="BOOL"></variables>
+		<variables name="INDEX_READVAR_TRAS_PETICION" typeName="INT"></variables>
+		<variables name="EQUIPO4" typeName="BOOL"></variables>
+		<variables name="MES_PLC" typeName="INT" topologicalAddress="%MW59"></variables>
+		<variables name="DIGITAL_ANTES_WORD" typeName="WORDARRAY32"></variables>
+		<variables name="COMUNICACION_SCAN" typeName="INT"></variables>
+		<variables name="MANDO_2" typeName="WORD"></variables>
+		<variables name="aux_4" typeName="UINT"></variables>
+		<variables name="MATRIZ_DIGITAL_CALCULADAS_WORD" typeName="ARRAY[1..40] OF WORD"></variables>
+		<variables name="MANDO_SP_TEMPORIZ" typeName="INTARRAY400"></variables>
+		<variables name="IP_3_3" typeName="BYTE" topologicalAddress="%MW34">
+			<variableInit value="2#0000_0001"></variableInit>
+		</variables>
+		<variables name="SEGURIDAD" typeName="BOOL"></variables>
+		<variables name="PERDIDAS_SD" typeName="INT"></variables>
+		<variables name="FBI_24_28" typeName="TOF"></variables>
+		<variables name="CAMBIOS_EQUIPOS" typeName="INT"></variables>
+		<variables name="ANALOGICAS_EQ_ANTERIOR" typeName="WORD"></variables>
+		<variables name="COMUNIC_EQUIPOS_OK" typeName="BOOL"></variables>
+		<variables name="SOCOMEC1_V31" typeName="REAL" topologicalAddress="%MW3004"></variables>
+		<variables name="CONTESTA_ETH_OK" typeName="INT"></variables>
+		<variables name="DIGITAL_CALCULADAS_ANTES" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="ESTADO_COMUNIC_ACTIVA_WORD" typeName="WORD"></variables>
+		<variables name="SOCOMEC1_P_TOTAL" typeName="REAL" topologicalAddress="%MW3024"></variables>
+		<variables name="ANALOGICAS_EQUIPO1_ACTUAL" typeName="INTARRAY40" topologicalAddress="%MW6500"></variables>
+		<variables name="SALIDAS_DIGITALES_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW108"></variables>
+		<variables name="WTB10" typeName="WORD_TO_BIT_DFB"></variables>
+		<variables name="NMANDO_2" typeName="INT"></variables>
+		<variables name="ED_CALCULADAS" typeName="CALCULADAS"></variables>
+		<variables name="Ocupado_lecturas_READ_VAR" typeName="BOOL"></variables>
+		<variables name="TEMP_SGC" typeName="INT"></variables>
+		<variables name="ESCRITURAS_ETH_ERROR" typeName="BOOL"></variables>
+		<variables name="MANDO_ED_PV_TEMPORIZ" typeName="INTARRAY400"></variables>
+		<variables name="AUX_ED_PC" typeName="Boolarray32"></variables>
+		<variables name="IP_3" typeName="BYTE"></variables>
+		<variables name="IP_2_3" typeName="BYTE" topologicalAddress="%MW35">
+			<variableInit value="2#0000_0100"></variableInit>
+		</variables>
+		<variables name="WTB6" typeName="WORD_TO_BIT_DFB"></variables>
+		<variables name="ESCRITURAS_ETH_NO_REG_EQ" typeName="WORD"></variables>
+		<variables name="BORRAR_BUF_AUX" typeName="intarraycola"></variables>
+		<variables name="SOCOMEC2_IS" typeName="REAL" topologicalAddress="%MW3108"></variables>
+		<variables name="TEMP_SGC_PDC" typeName="WORD"></variables>
+		<variables name="IP_2" typeName="BYTE"></variables>
+		<variables name="B_TRATA_EQUIPOS" typeName="INTARRAY40" topologicalAddress="%MW640"></variables>
+		<variables name="WRITE4X" typeName="PUT4X"></variables>
+		<variables name="H3" typeName="INT"></variables>
+		<variables name="ANALOGICAS_EQUIPOS_1_16" typeName="WORD" topologicalAddress="%MW993"></variables>
+		<variables name="H2" typeName="INT"></variables>
+		<variables name="MANDO_EN_CURSO" typeName="BOOLARRAY400"></variables>
+		<variables name="TEMP_PDC_SGC" typeName="WORD"></variables>
+		<variables name="L" typeName="INT"></variables>
+		<variables name="EQUIPO_2" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32766"></variableInit>
+		</variables>
+		<variables name="MATRIZ_DIGITAL_CALCULADAS" typeName="ARRAY[1..40] OF INT"></variables>
+		<variables name="IP_1_1" typeName="BYTE" topologicalAddress="%MW28">
+			<variableInit value="2#0101_0001"></variableInit>
+		</variables>
+		<variables name="DIGITAL_ACTUAL" typeName="ARRAY[1..32] OF INT"></variables>
+		<variables name="CONT_OK_ETH" typeName="INT"></variables>
+		<variables name="H5" typeName="INT"></variables>
+		<variables name="SOCOMEC1_COSENO" typeName="REAL" topologicalAddress="%MW3030"></variables>
+		<variables name="ESCRITURAS_ETH_DONE" typeName="BOOL"></variables>
+		<variables name="GR_CTRL_PLC_1_FS" typeName="BOOL">
+			<comment>PLC EN "FUERA DE SERVICIO"</comment>
+		</variables>
+		<variables name="ANALOGICAS_EQUIPOS_ACTUAL" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="N" typeName="INT"></variables>
+		<variables name="EQUIPO_4" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32760"></variableInit>
+		</variables>
+		<variables name="ESCRITURAS_ETH_DONE_EQ" typeName="BOOL"></variables>
+		<variables name="IP_1_3" typeName="BYTE" topologicalAddress="%MW36">
+			<variableInit value="2#0101_1011"></variableInit>
+		</variables>
+		<variables name="IP_3_1" typeName="BYTE" topologicalAddress="%MW26">
+			<variableInit value="2#0000_0001"></variableInit>
+		</variables>
+		<variables name="FALLO_PUERTO_SERIE" typeName="BOOL" topologicalAddress="%I0.0.0.ERR"></variables>
+		<variables name="LONG_SAL" typeName="INT"></variables>
+		<variables name="MINUTOS_PLC" typeName="INT" topologicalAddress="%MW63"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_5" typeName="INTARRAY40" topologicalAddress="%MW7700"></variables>
+		<variables name="EQUIPO_7" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32704"></variableInit>
+		</variables>
+		<variables name="MSEG_PLC" typeName="INT"></variables>
+		<variables name="IP_1_2" typeName="BYTE" topologicalAddress="%MW32">
+			<variableInit value="2#0101_0001"></variableInit>
+		</variables>
+		<variables name="SALIDA" typeName="BOOLARRAY400"></variables>
+		<variables name="CONTROL_IP" typeName="DINT"></variables>
+		<variables name="H4" typeName="INT"></variables>
+		<variables name="COLA_MAX" typeName="INT">
+			<variableInit value="4000"></variableInit>
+		</variables>
+		<variables name="IP_NOE1_EQUIPO1" typeName="string[35]">
+			<variableInit value="0.1.0{192.1.4.81}"></variableInit>
+		</variables>
+		<variables name="DIGITAL_CALCULADAS_ACTUAL_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
+		<variables name="ENLACE_COMUNIC_OK_LECTURA" typeName="INT" topologicalAddress="%MW67"></variables>
+		<variables name="aux" typeName="BOOL"></variables>
+		<variables name="Lecturas_SACIS" typeName="ARRAY[1..100] OF Lecturas_Read_Var">
+			<comment>lectura de variables del sepam</comment>
+			<instanceElementDesc name="[1]">
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.1</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50514</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>20</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[2]">
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50536</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>8</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.1</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[3]">
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.1</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50780</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>10</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[5]">
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.2</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50514</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>20</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[6]">
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.2</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50536</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>8</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[4]">
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.1</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>51542</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>4</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[7]">
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.2</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50780</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>10</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[8]">
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>51542</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.2</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>4</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+		</variables>
+		<variables name="TIPO_SAL" typeName="INT"></variables>
+		<variables name="MATRIZ_SALIDAS_DIGITALES" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="MANDO_1" typeName="WORD"></variables>
+		<variables name="MANDO_PV_TEMPORIZ" typeName="INTARRAY400"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_10" typeName="INTARRAY40" topologicalAddress="%MW7900"></variables>
+		<variables name="ESCRITURAS_ETH_DONE_TE" typeName="BOOL"></variables>
+		<variables name="APUNTE_SD" typeName="INT">
+			<variableInit value="3"></variableInit>
+		</variables>
+		<variables name="MANDO_TEMPORIZADO" typeName="BOOLARRAY400"></variables>
+		<variables name="EQUIPO2" typeName="BOOL"></variables>
+		<variables name="MATRIZ_SALIDAS_DIGITALES_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
+		<variables name="I" typeName="INT"></variables>
+		<variables name="M_R_MODO_EXPLOTACION" typeName="INT" topologicalAddress="%MW717"></variables>
+		<variables name="IP_3_2" typeName="BYTE" topologicalAddress="%MW30">
+			<variableInit value="2#0000_0001"></variableInit>
+		</variables>
+		<variables name="WTB38" typeName="WORD_TO_BIT_DFB"></variables>
+		<variables name="EQUIPO3" typeName="BOOL"></variables>
+		<variables name="CICLOS_EQ" typeName="INT"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_2" typeName="INTARRAY40" topologicalAddress="%MW7540">
+			<instanceElementDesc name="[4]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[5]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[6]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[7]">
+				<value>20</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[8]">
+				<value>20</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[9]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[10]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[11]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[12]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[13]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[14]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[15]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[16]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[17]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[18]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[19]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[20]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[21]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[22]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[23]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[24]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[25]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[26]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[27]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[28]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[29]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[30]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[31]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[32]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[33]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[34]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[35]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[36]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[37]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[38]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[39]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[40]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[1]">
+				<value>2</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[2]">
+				<value>2</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[3]">
+				<value>2</value>
+			</instanceElementDesc>
+		</variables>
+		<variables name="DIA_PLC" typeName="INT" topologicalAddress="%MW60"></variables>
+		<variables name="EQUIPO_10" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32256"></variableInit>
+		</variables>
+		<variables name="ENLACE_COMUNIC_OK_WORD" typeName="WORD"></variables>
+		<variables name="DIGITAL_ANTES" typeName="ARRAY[1..32] OF INT"></variables>
+		<variables name="FBI_24_22" typeName="TOF"></variables>
+		<variables name="NOE2" typeName="BOOL"></variables>
+		<variables name="Param_gestion_READ_VAR" typeName="ARRAY[1..4] OF INT"></variables>
+		<variables name="IP_NOE2_EQUIPO2" typeName="string[35]">
+			<variableInit value="0.2.0{192.1.5.81}"></variableInit>
+		</variables>
+		<variables name="HORAS_PLC" typeName="INT" topologicalAddress="%MW62"></variables>
+		<variables name="BANDA_TRATAMIENTO_EQ" typeName="BoolArr32"></variables>
+		<variables name="IP_1" typeName="BYTE"></variables>
+		<variables name="IP_2_1" typeName="BYTE" topologicalAddress="%MW27">
+			<variableInit value="2#0000_0100"></variableInit>
+		</variables>
+		<variables name="ALGO_QUE_ENVIAR" typeName="BOOL"></variables>
+		<variables name="aux_2" typeName="REAL"></variables>
+		<variables name="CONT_MSTR_ERROR" typeName="INT"></variables>
+		<variables name="M_R_ESTADO_COMUNIC_ACTIVA" typeName="INT" topologicalAddress="%MW469"></variables>
+		<variables name="ANALOGICAS_EQUIPO2_ANTERIOR" typeName="INTARRAY40"></variables>
+		<variables name="TEMP_PRIMER_CICLO_EQUIPOS" typeName="INT"></variables>
+		<variables name="REG_100_MSG" typeName="BOOL"></variables>
+		<variables name="BUF_AUX_SD" typeName="intarraycola"></variables>
+		<variables name="DIGITAL_CALCULADAS_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW88"></variables>
+		<variables name="SOCOMEC2_V12" typeName="REAL" topologicalAddress="%MW3100"></variables>
+		<variables name="N_PLC" typeName="INT">
+			<variableInit value="1"></variableInit>
+		</variables>
+		<variables name="CONMUTAR_DE_VIA" typeName="BOOL"></variables>
+		<variables name="COMUNICACIONES_SP" typeName="ARRAY[0..64] OF INT"></variables>
+		<variables name="IP_4_1" typeName="BYTE" topologicalAddress="%MW25">
+			<variableInit value="2#1100_0000"></variableInit>
+		</variables>
+		<variables name="ANALOGICAS_EQUIPO2_ACTUAL" typeName="INTARRAY40" topologicalAddress="%MW6600"></variables>
+		<variables name="TM1" typeName="INT"></variables>
+		<variables name="MATRIZ_ANALOGICAS_EQ_WORD" typeName="WORD"></variables>
+		<variables name="TEMP_TEST_ENLACE" typeName="INT">
+			<variableInit value="120"></variableInit>
+		</variables>
+		<variables name="TIEMPO" typeName="INT"></variables>
+		<variables name="SOCOMEC2_V23" typeName="REAL" topologicalAddress="%MW3102"></variables>
+		<variables name="M_R_TEST_ENLACE_SGC_PDC" typeName="INT" topologicalAddress="%MW453"></variables>
+		<variables name="AUX_EDC_PC" typeName="ARRAY[1..40] OF BOOL"></variables>
+		<variables name="CAMBIOS_PAQ_LECTURA" typeName="INT" topologicalAddress="%MW71"></variables>
+		<variables name="GESTION_COM" typeName="ARRAY[1..4] OF INT"></variables>
+		<variables name="PERDIDAS_EDC" typeName="INT"></variables>
+		<variables name="Numero_reintentos_READ_VAR" typeName="INT">
+			<variableInit value="3"></variableInit>
+		</variables>
+		<variables name="DIR_ESCRITURA_SGC" typeName="UINT">
+			<variableInit value="462"></variableInit>
+		</variables>
+		<variables name="SOCOMEC1_IS" typeName="REAL" topologicalAddress="%MW3008"></variables>
+		<variables name="ESTADO_COMUNIC_ACTIVA" typeName="INT" topologicalAddress="%MW468"></variables>
+		<variables name="IP_NOE_EQUIPO0" typeName="string[35]">
+			<variableInit value="0.0.0{0.0.0.0}"></variableInit>
+		</variables>
+		<variables name="APUNTE_EDC" typeName="INT">
+			<variableInit value="2"></variableInit>
+		</variables>
+		<variables name="SOCOMEC1_V23" typeName="REAL" topologicalAddress="%MW3002"></variables>
+		<variables name="Indice_lectura_READ_VAR" typeName="INT"></variables>
+		<variables name="AUX_ED" typeName="BOOL"></variables>
+		<variables name="MANDO_ED_SP_TEMPORIZ" typeName="INTARRAY400"></variables>
+		<variables name="EQUIPO0" typeName="BOOL"></variables>
+		<variables name="AUX_PRIMER_CICLOA" typeName="BoolArr32"></variables>
+		<variables name="EQUIPO_6" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32736"></variableInit>
+		</variables>
+		<variables name="ed_vigilancia" typeName="CALCULADAS"></variables>
+		<variables name="IP_2_4" typeName="BYTE" topologicalAddress="%MW39">
+			<variableInit value="2#0000_0101"></variableInit>
+		</variables>
+		<variables name="REG_10_MSG" typeName="BOOL"></variables>
+		<variables name="PALABRA_CAMBIOS" typeName="INT"></variables>
+		<variables name="CONT_ERROR_ETH" typeName="INT"></variables>
+		<variables name="SOCOMEC1_IR" typeName="REAL" topologicalAddress="%MW3006"></variables>
+		<variables name="ESTADO_EQUIPOS" typeName="BoolArr32"></variables>
+		<variables name="MODIFICA_ORDEN_PETICION_READVAR" typeName="BOOL"></variables>
+		<variables name="IP_1_4" typeName="BYTE" topologicalAddress="%MW40">
+			<variableInit value="2#0101_1011"></variableInit>
+		</variables>
+		<variables name="MATRIZ_ANALOGICAS_EQ" typeName="INT"></variables>
+		<variables name="NUM_TARJETAS16_ED" typeName="INT"></variables>
+		<variables name="BUF_AUX_ED" typeName="intarraycola"></variables>
+		<variables name="SOCOMEC2_IT" typeName="REAL" topologicalAddress="%MW3110"></variables>
+		<variables name="ESCRITURAS_ETH_ERROR_EQ" typeName="BOOL"></variables>
+		<variables name="IP_NOE2_EQUIPO4" typeName="string[35]">
+			<variableInit value="0.2.0{192.1.5.91}"></variableInit>
+		</variables>
+		<variables name="ESCRITURAS_ETH_SLAVEREG_EQ" typeName="WORD">
+			<variableInit value="16#0B54"></variableInit>
+		</variables>
+		<variables name="H" typeName="INT"></variables>
+		<variables name="B_T_EA_1_16_EQ" typeName="INT" topologicalAddress="%MW680"></variables>
+		<variables name="ANALOGICAS_EQUIPO2" typeName="INTARRAY40" topologicalAddress="%MW1040"></variables>
+		<variables name="AUX_P_C" typeName="BOOL"></variables>
+		<variables name="IP_4_2" typeName="BYTE" topologicalAddress="%MW29">
+			<variableInit value="2#1100_0000"></variableInit>
+		</variables>
+		<variables name="Numero_lecturas_READ_VAR" typeName="INT">
+			<variableInit value="1"></variableInit>
+		</variables>
+		<variables name="SOCOMEC1_V12" typeName="REAL" topologicalAddress="%MW3000"></variables>
+		<variables name="READ4X" typeName="GET4X"></variables>
+		<variables name="MATRIZ_DIGITAL_WORD" typeName="WORDARRAY32"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_3" typeName="INTARRAY40" topologicalAddress="%MW7620">
+			<instanceElementDesc name="[1]">
+				<value>2</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[2]">
+				<value>2</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[3]">
+				<value>2</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[4]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[5]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[6]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[7]">
+				<value>20</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[8]">
+				<value>20</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[9]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[10]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[11]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[12]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[13]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[14]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[15]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[16]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[17]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[18]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[19]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[20]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[21]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[22]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[23]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[24]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[25]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[26]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[27]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[28]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[29]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[30]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[31]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[32]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[33]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[34]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[35]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[36]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[37]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[38]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[39]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[40]">
+				<value>1</value>
+			</instanceElementDesc>
+		</variables>
+		<variables name="B4" typeName="INT"></variables>
+		<variables name="EQUIPO_1" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32767"></variableInit>
+		</variables>
+		<variables name="BUF_SAL_TE" typeName="intarraycola" topologicalAddress="%MW6200"></variables>
+		<variables name="DIGITAL_ACTUAL_WORD" typeName="WORDARRAY32"></variables>
+		<variables name="Contaje_INDEX_Read_Var" typeName="INT"></variables>
+		<variables name="BORRA" typeName="INT"></variables>
+		<variables name="EQUIPO1" typeName="BOOL"></variables>
+		<variables name="COMUNICACION" typeName="INT"></variables>
+		<variables name="PUNTERO" typeName="INT"></variables>
+		<variables name="GESTION_COM_EQ" typeName="ARRAY[1..4] OF INT"></variables>
+		<variables name="TEMP_P_C" typeName="INT"></variables>
+		<variables name="DIGITAL_CALCULADAS_ACTUAL" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="ESTADO_COMUNIC_ACTIVA_LECTURA" typeName="INT" topologicalAddress="%MW69"></variables>
+		<variables name="ANALOGICAS_CONTROL_EQUIPOS" typeName="WORD"></variables>
+		<variables name="aux_3" typeName="UINT"></variables>
+		<variables name="R_TRIG_10MSG" typeName="R_TRIG"></variables>
+		<variables name="M_E" typeName="BOOL"></variables>
+		<variables name="K" typeName="INT"></variables>
+		<variables name="R_TRIG_100MSG" typeName="R_TRIG"></variables>
+		<variables name="FE_OK" typeName="INT"></variables>
+		<variables name="M_R_BANDA_TRATAMIENTO_EQUIPOS" typeName="INT" topologicalAddress="%MW681"></variables>
+		<variables name="COLA_SACAR" typeName="INT">
+			<variableInit value="3"></variableInit>
+		</variables>
+		<variables name="DIGITAL_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW72"></variables>
+		<variables name="EQUIPO_8" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32640"></variableInit>
+		</variables>
+		<variables name="AUX_EQ" typeName="BOOL"></variables>
+		<variables name="ANALOGICAS_EQUIPO1_ANTERIOR" typeName="INTARRAY40"></variables>
+		<variables name="IP_4_4" typeName="BYTE" topologicalAddress="%MW37">
+			<variableInit value="2#1100_0000"></variableInit>
+		</variables>
+		<variables name="aux_1" typeName="REAL"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_9" typeName="INTARRAY40" topologicalAddress="%MW7860"></variables>
+		<variables name="TM2" typeName="INT"></variables>
+		<variables name="SOCOMEC1_IT" typeName="REAL" topologicalAddress="%MW3010"></variables>
+		<variables name="PERDIDAS_ED" typeName="INT"></variables>
+		<variables name="SOCOMEC2_P_TOTAL" typeName="REAL" topologicalAddress="%MW3124"></variables>
+		<variables name="ESCRITURAS_ETH_NO_REG" typeName="WORD"></variables>
+		<variables name="B3" typeName="INT"></variables>
+		<variables name="ADDM1" typeName="string[35]"></variables>
+		<variables name="COLA_BORRAR" typeName="INT">
+			<variableInit value="1"></variableInit>
+		</variables>
+		<variables name="ESCRITURA_PDC_SGC_TE" typeName="WORD" topologicalAddress="%MW6200"></variables>
+		<variables name="APUNTE_ED" typeName="INT">
+			<variableInit value="1"></variableInit>
+		</variables>
+		<variables name="ESCRITURAS_ETH_NO_REG_TE" typeName="INT">
+			<variableInit value="1"></variableInit>
+		</variables>
+		<variables name="ALGO_RECIBIDO" typeName="BOOL"></variables>
+		<variables name="B2" typeName="INT"></variables>
+		<variables name="NMANDO_1" typeName="INT"></variables>
+		<variables name="ESCRITURAS_ETH_ERROR_TE" typeName="BOOL"></variables>
+		<variables name="SALIDAS_DIGITALES_ACTUAL_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
+		<variables name="ANALOGICAS_EQUIPO1" typeName="INTARRAY40" topologicalAddress="%MW1000"></variables>
+		<variables name="CONTESTA_ETH_NO_OK" typeName="INT"></variables>
+		<variables name="M_R_TEST_ENLACE_PDC_SGC" typeName="INT" topologicalAddress="%MW452"></variables>
+		<variables name="NOE1" typeName="BOOL"></variables>
+		<variables name="AÑO_PLC" typeName="INT" topologicalAddress="%MW61"></variables>
+		<variables name="AUX_EDC" typeName="BOOL"></variables>
+		<variables name="IP_4_3" typeName="BYTE" topologicalAddress="%MW33">
+			<variableInit value="2#1100_0000"></variableInit>
+		</variables>
+		<variables name="EQUIPO_3" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32764"></variableInit>
+		</variables>
+		<variables name="DIGITAL_CALCULADAS_ANTES_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
+		<variables name="TEMP_SGC_PDC_INT" typeName="INT"></variables>
+		<variables name="ESCRITURAS_ETH_REQ_TE" typeName="BOOL"></variables>
+		<variables name="BUF_EQUIPOS" typeName="intarraycola" topologicalAddress="%MW4900"></variables>
+		<variables name="AUX_PDC" typeName="INT">
+			<variableInit value="-24576"></variableInit>
+		</variables>
+		<variables name="COLA" typeName="COLA"></variables>
+		<variables name="GESTION_COM_TE" typeName="ARRAY[1..4] OF INT"></variables>
+		<variables name="NUM_TARJETAS16_SD" typeName="INT"></variables>
+		<variables name="ESCRITURAS_ETH_DATABUF" typeName="intarraycola"></variables>
+		<variables name="TEMP_PRIMER_CICLO" typeName="INT">
+			<variableInit value="200"></variableInit>
+		</variables>
+		<variables name="IP_4" typeName="BYTE"></variables>
+		<variables name="IP_2_2" typeName="BYTE" topologicalAddress="%MW31">
+			<variableInit value="2#0000_0101"></variableInit>
+		</variables>
+		<variables name="WTB5" typeName="WORD_TO_BIT_DFB"></variables>
+		<variables name="SALIDAS_DIGITALES_ANTES" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="DIA_SEMANA_PLC" typeName="INT" topologicalAddress="%MW58"></variables>
+		<variables name="TEMP_PDC_SGC_INT" typeName="INT">
+			<variableInit value="120"></variableInit>
+		</variables>
+		<variables name="COLA_INSERTAR" typeName="INT">
+			<variableInit value="2"></variableInit>
+		</variables>
+		<variables name="SOCOMEC2_COSENO" typeName="REAL" topologicalAddress="%MW3130"></variables>
+		<variables name="H1" typeName="INT"></variables>
+		<variables name="SOCOMEC2_IR" typeName="REAL" topologicalAddress="%MW3106"></variables>
+		<variables name="AUX_SD_PC" typeName="ARRAY[1..40] OF BOOL"></variables>
+		<variables name="AUX_EQUIPOS" typeName="INT">
+			<variableInit value="0"></variableInit>
+		</variables>
+		<variables name="ESCRITURAS_ETH_REQ" typeName="BOOL"></variables>
+		<variables name="COMUNICACIONES_PV" typeName="ARRAY[0..64] OF INT"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_1" typeName="INTARRAY40" topologicalAddress="%MW7500">
+			<instanceElementDesc name="[1]">
+				<value>2</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[2]">
+				<value>2</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[3]">
+				<value>2</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[4]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[5]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[6]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[7]">
+				<value>20</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[8]">
+				<value>20</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[9]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[10]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[11]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[12]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[13]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[14]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[15]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[16]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[17]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[18]">
+				<value>100</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[19]">
+				<value>1</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[20]">
+				<value>100</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[21]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[22]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[23]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[24]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[25]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[26]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[27]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[28]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[29]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[30]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[31]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[32]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[33]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[34]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[35]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[36]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[37]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[38]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[39]">
+				<value>10</value>
+			</instanceElementDesc>
+			<instanceElementDesc name="[40]">
+				<value>10</value>
+			</instanceElementDesc>
+		</variables>
+		<variables name="ANULADO_ENVIO_MEDIDAS_EQ" typeName="BOOL">
+			<comment>AÑADIDO 15-32017 PARA ANULAR ENCOLADO Y ENVIO ESPONTANEO MEDIDAS EQ</comment>
+			<variableInit value="TRUE"></variableInit>
+		</variables>
+		<variables name="M" typeName="INT"></variables>
+		<variables name="ANALOGICAS_EQUIPOS_LECTURA" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="SOCOMEC2_V31" typeName="REAL" topologicalAddress="%MW3104"></variables>
+		<variables name="PRIMER_CICLO_DATOS_FISICOS_OK" typeName="BOOL"></variables>
+		<variables name="LECTURAS_SACIS_FB" typeName="LECTURAS_MB_READ_VAR_M340"></variables>
+		<variables name="REG_1_SG" typeName="BOOL"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_6" typeName="INTARRAY40" topologicalAddress="%MW7740"></variables>
+		<variables name="EQUIPO_9" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32512"></variableInit>
+		</variables>
+		<variables name="SALIDAS_DIGITALES_ACTUAL" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="PRIMER_CICLO" typeName="BOOL"></variables>
+		<variables name="ESCRITURAS_ETH_SLAVEREG" typeName="WORD">
+			<variableInit value="16#0AF0"></variableInit>
+		</variables>
+		<variables name="AUX_PC" typeName="BOOL"></variables>
+		<variables name="R_TRIG_SEG" typeName="R_TRIG"></variables>
+		<variables name="J" typeName="INT"></variables>
+		<variables name="MATRIZ_DIGITAL" typeName="INTARRAY40"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_8" typeName="INTARRAY40" topologicalAddress="%MW7820"></variables>
+		<variables name="TEST_ENLACE_PDC_SGC" typeName="INT"></variables>
+	</dataBlock>
+	<DDTSource DDTName="intarraycola" version="2.00" dateTime="dt#2009-02-11-10:02:17">
+		<attribute name="TypeSignatureCheckSumString" value="96BA"></attribute>
+		<array>ARRAY[1..99] OF INT</array>
+	</DDTSource>
+	<DDTSource DDTName="INTARRAY40" version="2.00" dateTime="dt#2009-01-27-15:08:55">
+		<attribute name="TypeSignatureCheckSumString" value="B469"></attribute>
+		<array>ARRAY[1..40] OF INT</array>
+	</DDTSource>
+	<FBSource nameOfFBType="WORD_TO_BIT_DFB" version="2.00" dateTime="dt#2009-01-26-11:47:37">
+		<crypted>8805EC2008B76BC98E4E6580742A108DECD429E35EA2FFDC395DB24BF903DF497875025794C3ACCB73861565389B3EC1F57342A1114209A6292A9D8510C2D4821F9E9CFBA6F7FD7EC33FAB8D6A3C5B81CEBA9CD1338D7E58E44A4F17435A6282C8463E4CB446210A4922AEBAB31D5DA9C43BAB474199EF44466676DA92638E562BCA24E121E941FA5305351AE55D0C85113F35551C1CEB8ED75C3DB130ED0CD2FBF88783B8B914AEC4E40F61E9E210E3621DB39EEA65A4E351001D5809600E147831DE5A6DB00C4D7ACDB1F242D926BDAC9B2B598D40023CEA1674E02A24E2FC6785ACACA532016FCFFD4F440AD8F6D5768B058FC6BA5A4B52241617CDC5CECC709240FECBB78DC428F4F6D25C8BA053822D9468AA8DC909763C685F0B452B56B78F9F84A1DEE1B895476AD3D7B3C952229E2B8180AA08243735B42B461FE5B068FF912D3ED3BE97E9946F5A3647F6B8636CB22BEC7234A37BDB80FFC5894278C8877242724530693147C497ECDB576383569CD2A499E419455B01847059459846874077F4FBF86BE53DEB44F94277D7C567CDD39E323FDD37769C9088EE17612E66DB22B91E96D082DD8CC75A8C66A9843315F1EE1543DC764EE20ECE70981ECCA918DE09C826A8F5957A59A79DCB5D96A16443A451F32050633EA78B665EE4CDBD54383818B414F2A41134912683C9727E1CD0AC94BBD933B14B19C4020CB3072C6C2639EC3D489B21FFB90B5DB187BD06446827A3124B16848D796668ED3EA931DBAF0704FB66EFD8A73E93A9FBAA8617D2AB20752B0C7910473DBBD1BFDDA44CCB7158D2B530AA74DE88CA609D48D9217931068755AAFA449F61508E6C1BAEB14329EF04F7DBA2B019847D46206B19D3BCDAD6C923C87B1646C5D1576B8CD5A98571C440FA68D2E870BD19DEE16D87EF038A2CE5FE6563A3C8DFD4C7B028AAC23103B6478267F70F264B6CE89857498C508A5A08019E0F730E40073CF92DA0E5D73160C43712366CEF23C250749EC2EE6147D56E11F76333074AB0C6AF7AE6A987E24072341C1AE1D16DC65C613D0C675A9C668DD5C0ADAD169E9EC2FF46F8396043F0A40BC85168E81B5E7CF8F3E65C7AD2E0BBC555B95FBA425163F2EBBD6A477CA1056A0B122D48240690930F381FCAF66532305BD518F8D278ED04A2FB5621EA6D5B0BC2C96A39DD60F27A17FE7387DF73802F63E60D85F7B88F7448209A3100F130669FB21873BE691F9E4D97A3B7C254B8898D61FD7FD297DBE9C79963CB0009B600D859526F19874CFB5AF8E80C79CD757F867DE39291FDC2000C677B45BE937663F8686654A1DB49BA3B4C9769B4E4783C74231A2CDFE75C568A9B2526FD95F084132384EE02C8FE26AB62C37B9B2FA08E5E6D08911D7ADCB6778FB90A556CA069947C7F720BF4E139A1B2B1E7F5152548CD8C863FE02881150F40893A9B3408787359A55FEB6620B2F2ED04E606A9EFE6D7D82F20C45FD4AA05EAF2AB86AE7A590F8D0BAE60BE8432AC18327C6169F006CDCED4AC133387269D6DFA38967C9F170EA4A9F741FEF5C30870E032D8B05B6E1B19A902CF8CBCC3269F9D87662ABB059C3909E0C8F339C35CECC75EDD36C44DCCA7527BBBFF3822E89223D4A7BA771BAAFF786C4BA75EED3C55D52121491D7FEC43BD1C57E3F3B2A4013A91264F3CC5E666503E3F1DFD42778B4198D18BB6FD145AD0AAE9F8F39040CA1C047ED76C5FEAF82C6ECA8268A01456F8863EE57BA825FC7529AE5129277609B92FCFD17E81AC8B6C78BD69CBAE9A64933CB05D4B0EF9EF7BBA511134010F93D0BBB49E11AADA030B465903203C5559C6121E030A1FBDCF1870201C21CC90B6ECF8AE765ACEC0D4777B5DC8122009D1BF457868BC71C2171311AA9E9495500C59D7D5410A2AAE0CC9C411AFD3C1F92069C83A200A7F65F304DE6A88545A037FA34A6C446323CCF298B47C8E2E36E8CECF581B65171C928DD40E88955A19C139C04AFCAC5ED1BA767E3800056C80E486989C5DD02922FE2852E33711FAFDC9834DEDA08262220F1311BA1FCB255CE16AEC143A816B3ACEC34D5059E2A664EB33A3E2697E33B8BC982392512FC43D4EC4DCDA7AAE7B3CF1465AD8F2108193E106B1A9B4EDD1B0F621FD3A5CC673CD719CDA13DA216591E68ECFF91C4FE072CDC63F59CD2468B7E2D9A5B4491A8195770E81D6FFC6B24C5E7AE4522779DB2CEA1143DDFEF88FE9294F9D0A3DB3D35F70E0562FC96408AD3C345A2AA6CFDD4B592E90E7677A0136805019A800E6A9C339A0DFF739CB8CE1B0BB28A5F1108EBA900A6B41FFD08FE0040AEF420B099D65502212B3D7DEF7CEB546E4DF20E5863CD915142A58E2AB2AE546F114E12D4D830E58D722E72D1A64080B1D93B01002E9753DFD62DD4D7348472B409B7DF6945A9A8211E2AEA338DD035FD74873DF066A4FAD649AF446F43CFEFEBBBDA9105849BA2183F80DAA64752369B59C57A6CA0B2D56C0C446F6CC9C95C6CE971ABC0EA03E4D80A1B251D43FC589DEDCD203F41B3FC13C08D8E5EC4E01E95E1DCB29D929C9582FCB1C62BB288DB56F813DF104E0F6A768FA7AEB0C6A004DA19E1108D884B8BD9D53CD118079761FB235DEC1E16309149312F0FB02D94B4FBC0C3E191C9A913AF384C4DBE9AB277165ABA46CBD9B66D2A51049B2720EA11831DBBAA4A3B61B3B3BF93FAAAC7AC46F29F300DABD71F1F6EFC6B5EBAA2DDBD049E53E339A49FDE78A289D2155FA2BD3CA3D853A52091F141FEF1B04A7D77856461C0B56CECCEA9E6D04B0D45FAF69CBE864BE301B30C75A34304020C715A143495B6B3B955FD19CF90DB96C7DB02414EB27D178210423822F901E2818A4E3ABC2F24A0A0304DDF831E0C0919474DFF7A679FF4D1A54DE064770327FE04406C7C7D531DA0ADDBEA922CAC3C8498F7877936D58C33C76F9F39F82A21815157AB5161D04C55DCE9C053387173DE7C65642AE2BD727D3321119425F9F1A60C72424F2237B123D62CB0584F77EF2AB3AC66449302E6CBB278834E10869D0CF7BD41195E510E3DDFD88FA9A99160DC82E8A5E2E2E0D43A3D5F80FAADE9C8F4AADB6718D4F6EFC58D4D9B2D7502E10D705867CCEB1C329CEE105B19FBF3F3F0AA883A1227849AAE832C597CCBED32581D6F9127AE4EBE0D8834D2E069FAAC0386E013EEF2E78ABFFDBFE6F6B0282536AE245FED9D64773E8272DE37C6392EB486A8F56C283C24C2E1EC55E2C9A32CAFE1EC5757C9563E9192A5D9DA866C4D7D117291D59D2F3F9F43E8755581424D3679F85EF04695AABFDB1</crypted>
+		<attribute name="TypeCodeCheckSumString" value="F944"></attribute>
+		<attribute name="TypeSignatureCheckSumString" value="9603"></attribute>
+		<ExternalToolsOnly>
+			<inputParameters>
+				<variables name="IN" typeName="WORD">
+					<attribute name="PositionPin" value="1"></attribute>
+				</variables>
+			</inputParameters>
+			<outputParameters>
+				<variables name="BIT0" typeName="BOOL">
+					<attribute name="PositionPin" value="1"></attribute>
+				</variables>
+				<variables name="BIT1" typeName="BOOL">
+					<attribute name="PositionPin" value="2"></attribute>
+				</variables>
+				<variables name="BIT2" typeName="BOOL">
+					<attribute name="PositionPin" value="3"></attribute>
+				</variables>
+				<variables name="BIT3" typeName="BOOL">
+					<attribute name="PositionPin" value="4"></attribute>
+				</variables>
+				<variables name="BIT4" typeName="BOOL">
+					<attribute name="PositionPin" value="5"></attribute>
+				</variables>
+				<variables name="BIT5" typeName="BOOL">
+					<attribute name="PositionPin" value="6"></attribute>
+				</variables>
+				<variables name="BIT6" typeName="BOOL">
+					<attribute name="PositionPin" value="7"></attribute>
+				</variables>
+				<variables name="BIT7" typeName="BOOL">
+					<attribute name="PositionPin" value="8"></attribute>
+				</variables>
+				<variables name="BIT8" typeName="BOOL">
+					<attribute name="PositionPin" value="9"></attribute>
+				</variables>
+				<variables name="BIT9" typeName="BOOL">
+					<attribute name="PositionPin" value="10"></attribute>
+				</variables>
+				<variables name="BIT10" typeName="BOOL">
+					<attribute name="PositionPin" value="11"></attribute>
+				</variables>
+				<variables name="BIT11" typeName="BOOL">
+					<attribute name="PositionPin" value="12"></attribute>
+				</variables>
+				<variables name="BIT12" typeName="BOOL">
+					<attribute name="PositionPin" value="13"></attribute>
+				</variables>
+				<variables name="BIT13" typeName="BOOL">
+					<attribute name="PositionPin" value="14"></attribute>
+				</variables>
+				<variables name="BIT14" typeName="BOOL">
+					<attribute name="PositionPin" value="15"></attribute>
+				</variables>
+				<variables name="BIT15" typeName="BOOL">
+					<attribute name="PositionPin" value="16"></attribute>
+				</variables>
+			</outputParameters>
+		</ExternalToolsOnly>
+	</FBSource>
+	<DDTSource DDTName="WORDARRAY32" version="0.00" dateTime="dt#2009-01-28-12:49:08">
+		<attribute name="TypeSignatureCheckSumString" value="1A0A"></attribute>
+		<array>ARRAY[1..32] OF WORD</array>
+	</DDTSource>
+	<DDTSource DDTName="INTARRAY400" version="2.00" dateTime="dt#2002-11-30-12:00:00">
+		<attribute name="TypeSignatureCheckSumString" value="FE2B"></attribute>
+		<array>ARRAY[0..400] OF INT</array>
+	</DDTSource>
+	<DDTSource DDTName="CALCULADAS" version="2.00" dateTime="dt#2002-11-30-12:00:00">
+		<attribute name="TypeSignatureCheckSumString" value="9580"></attribute>
+		<array>ARRAY[1..320] OF BOOL</array>
+	</DDTSource>
+	<DDTSource DDTName="Boolarray32" version="0.00" dateTime="dt#2009-01-28-09:36:19">
+		<attribute name="TypeSignatureCheckSumString" value="C654"></attribute>
+		<array>ARRAY[1..32] OF BOOL</array>
+	</DDTSource>
+	<FBSource nameOfFBType="PUT4X" version="2.00" dateTime="dt#2009-01-26-11:47:39">
+		<crypted>8805EC2008B76BC98E4E6580742A108BECD429EC3F0E9A2D19FED2A8AFF19CB281B8DBDDEFD91D8CAE0491A18F5C00A2861D2A5A77264B3B7AD745A911CCB4B70536EEABD08C0C4DDB89D8D9A2508B7A37D2293C56B6AE3BF1A71B4BAD47D7B9A770AE60142DEEA3D74BC183B6464A4D50F7834EF8D58B490F6F5E8E10C8946A3BB515BD70B1B3BDF855A9FB3F080B1009BE4180D78BC01BBD2EB3FCE2B5BE6B7978A32192FE254D05EF3DCF417716A647BC390FED221A3BB7C443818D78EC740F24E14EAE10EDE572BC94354828E35BF14126933BD366C2BE0350AC15497C2AA7FE91DEB1C5B3C44A3028F3218B5055670B0485296F22CA4A68DB6524EBA787F78C2EFEE0635DF470E57DD0B7F0CFE3BA3EBC37D1C0C3A0FD95C91B3E276E26A83D5EEEAA562652A30F8737561D6FAA6FEEAD103D549FD2D8100EE5D2AE1134B09BFA055DC78E6F19F557EC38270F1AE0DEABDCB428676DA068BB08DC6616FB80D17C416E527F99F9CFF3A2C06CA1BEDEE72BDEA3C7D8B14A858DAECAC86FC0A563EBCEEB89688336B5DF1A2A6FDE0BE8A90B1FD0676A1F049FEEA6A4BEE5722C3B993DEE42D586AA185D91ACE4C1626F5A7989444138C3C53FCD8714B0B483A048C1B552246115858B461F6BE563823A597EAEAF0966F91F5622818B152AC876592E698688F836BA64F72035BD87B99B4A5FBD88A38975A9B6057C1F7CCFC82FDF3CA4DBEB99A78CEE4925242F5042F795F69521C9B273D6E0EC85E442FD2474C1EB71DAD8FAA258988E13ACBF005E0C165A3EB8EBD164F4819210BA2807FF3EEB5E4A26DF0EEADA149FCCD4300263702B16DDFE36B109AF754C36FE0A16E79CF516CDCE4BAAEAF250A2F035B0A12BB0BE9D34829B94F0EBBF4F09528174EDEF911DEAE612B204A67F2ED141B959B85CA2615C89BC6C2B4EB0E8AF5ABDF9A41E81EA0277EF35A60FD036218D93EA6CFAED70508C630AE9DB612CFCD0851B5098E3676C1AD61E55702580C9700791832AB14ADCDA4325CBEC8316E5DEA36DD864884F3E9814DC6FC0126ECC796C5DF9D32A954332239F98569600F75517D5855786DDBABDA50BED6068E65F6ACBF059D9009C7DA4811FEC503234465EF1B4098EA68E029A3B8A37877EABB79E68E53E80618B4F5E32EE67BCB6501630B47ABD0CFC9BCFBA8D99596E8C2EE833CF0E859C7BEEFA12DB5BDD8829D1E9A2FEC264F0F8E7FA4F2EC0DEF1046A7B7628BB1F344676FBAE04CD266BEF69C14FD2869D6B4206A491D821B0B540FD55BA82FDF181306C62DF774D0363127B7825C174B643C61634E160A035738A48B929051DB4E857052C130BF84D8F36F3035D296140CC69804FBA14A0B7169B170EE7E19C67773303D8C04DB6ACDDDB62E4C3B477C911A763EF573CDBF4ED282D720C9025EAF7DD85E27A458FA831231E479B368D04245C019D845544F7F5094C76A9F96CFB4AFF22205DE5704B1936EC8210524C146F68D458FB695CE7B6D0634CEDDEF46F2B526CF191E914564D0ED25AE77233DE77965D7F0F3B67EF890FBEF2656727967AA96CA9E39D4A72396C5A8CA269142108226E066B1BFD3261DE50860000841C535DD6D23E351E1F6C31F2514C19D28EB8599C2661111BC0A72DE2114130AAA1BDA4400FD0DDE9D171F811FBE8C873914D61C0371C32080818B4BB25562ABD43A0905B4D3B565B63674D5F500E0E6D0489937C3BE23A</crypted>
+		<attribute name="TypeCodeCheckSumString" value="BA61"></attribute>
+		<attribute name="TypeSignatureCheckSumString" value="82FB"></attribute>
+		<ExternalToolsOnly>
+			<inputParameters>
+				<variables name="STACK" typeName="UINT">
+					<attribute name="PositionPin" value="3"></attribute>
+				</variables>
+				<variables name="IN" typeName="INT">
+					<attribute name="PositionPin" value="4"></attribute>
+				</variables>
+			</inputParameters>
+		</ExternalToolsOnly>
+	</FBSource>
+	<DDTSource DDTName="BOOLARRAY400" version="2.00" dateTime="dt#2002-11-30-12:00:00">
+		<attribute name="TypeSignatureCheckSumString" value="659D"></attribute>
+		<array>ARRAY[1..400] OF BOOL</array>
+	</DDTSource>
+	<DDTSource DDTName="Lecturas_Read_Var" version="0.01" dateTime="dt#2009-05-27-11:48:18">
+		<attribute name="TypeSignatureCheckSumString" value="01B8"></attribute>
+		<structure>
+			<variables name="Terminal" typeName="STRING">
+				<comment>Terminal al que se va acceder (formato: 0.0.0.1-&gt;Bastidor.Slot.Canal.Direccion terminal)</comment>
+			</variables>
+			<variables name="Dir_inicial_terminal" typeName="DINT">
+				<comment>Direccion en la que se va a iniciar la lectura/escritura del terminal</comment>
+			</variables>
+			<variables name="Num_palabras" typeName="INT">
+				<comment>Numero de palabras que se van a leer/escribir (max:20)</comment>
+			</variables>
+			<variables name="Reintentos" typeName="INT">
+				<comment>Numero de reintentos que se van a realizar en la comunicación</comment>
+			</variables>
+			<variables name="Array_destino" typeName="ARRAY[1..50] OF INT">
+				<comment>Posicion inicial dentro del buzón de destino</comment>
+			</variables>
+			<variables name="Fallo" typeName="BOOL"></variables>
+			<variables name="Codigo_fallo" typeName="BYTE"></variables>
+			<variables name="Objeto" typeName="STRING">
+				<comment>Objeto que vamos a pedir, bien '%MW' o bien '%M'</comment>
+			</variables>
+		</structure>
+	</DDTSource>
+	<FBSource nameOfFBType="GET4X" version="2.00" dateTime="dt#2009-01-26-11:47:39">
+		<crypted>8805EC2008B76BC98E4E6580742A108BECD429EC3F0E9A2D19FED2A8AFF19CB281B8DBDDEFD91D8CAE0491A18F5C00A2861D2A5A77264B3B7AD745A911CCB4B70536EEABD08C0C4DDB89D8D9A2508B7A37D2293C56B6AE3BF1A71B4BAD47D7B9A770AE60142DEEA3D74BC183B6464A4D50F7834EF8D58B490F6F5E8E10C8946A3BB515BD70B1B3BDF855A9FB3F080B1009BE4180D78BC01BBD2EB3FCE2B5BE6B7978A32192FE254D05EF3DCF417716A647BC390FED221A3BB7C443818D78EC740F24E14EAE10EDE572BC94354828E35BF14126933BD366C2BE0350AC15497C2AA7FE91DEB1C5B3C44A3028F3218B5055670B0485296F22CA4A68DB6524EBA787F78C2EFEE0635DF470E57DD0B7F0CFE3BA3EBC37D1C0C3A0FD95C91B3E276E26A83D5EEEAA562652A30CF044561D6FAA6FEEAD103D549FD2D8100EE5D2AE1134B09BFA055DC78E6F19F557EC38270F1AE0DEABDCB428676DA068BB08DC6616FB80D17C416E5F7D9BF9CFF3A2C06CA1BEDEE72BDEA3C7D8B14A858DAECAC86FC0A563EBCEEB89688336B5DF1A2A6FC4118BCA344480765D0E0CB4B2E994CA8973474BF17EA40AC69BBC1F4096F9FEC52F640636BC161001D8DF39D7BE12B0C6CAB80B8DB6567536429A864B016BAD3EDF25596EABAB1834A0430170879F1313C86654267FD283EB28E165BA1C0FEFD2B9B25B489284AB982DF98C75144B2381C03AC922A8CABE83A3C1E5156A0E472630B892E6912DE8BD4EDAB3ECECDC77B36F2D9DBD318A9EA6EB038BCF0FA4B3070F4B350B71FEF6D67BEFA5AB1FEA691CFB26FB49043AD15CB78D5ED1CED00E0461732B25CFB263FF04B6644F6CB46631D7ADEA1CDED958B4F4A041BDFC7EF3A53C95BF9D3C9EAC99A0BCE26B2773A134A6A1B43A9AFA1F8719B061339D12E01EA510896C77A091400172AFF4A02ADD83CB1F91EC167DBD30821FFB7F6EF6F79A1AB4A27D59EF6508EFC26E31A297F84C1FC3E22B6C1DC2034E79069DE82064E3BD4AD352CAC94D4BC3EF955FA6E0955CC931BD0823DB1CDD63EB1F64FD23751389CE3DAB531120978F56967790212D8F981BE981FCBFAD13F76A24A8496FFFED5FAA57C93DE19B47A70778601E1282F8788FEB8A09A6279C7CD360ADBDCA70B76FE07E89160F79A97FA7F82B1E30BB74F041A8F7C4AC978E4268927AF133D210FEFC6ABBA057C875C8A57181E5B4FED366A5F2F2FC580AC8DCEC0C6779554E9051275B61EC8A06E92A77EF698510829C963917149D82C729BD874DEA14BE89FFF181792B43C13C0C007D1D746423D000F757C0053BEC69D03D6F9D40AE29050BD9A37C762C5A54A8578464A611643A7E48C15B8D58FB10ABB5169B5E49CCF7B32B6A7403DFC95DA7E78BD85DF7DCB476FC04B070BF103BCAE7B361401B748E6CE1E1CE94D76F5E90AC032E09069F3D8F04241546B09A1E05F4EB00586EAAE93A8D4DE2392C5EE5450A0239F78216435B4D1D48F447F96A5BEDA0D63505FDD4D663385F51F597ED0B0E1B02CE45EA0941FE20CD1336141872ED951A8AFF722E2F9A60A93EB4E88F7F6923341CBAAA6B5A664C63641A7C54BC385ECD4F860135910B400D91E315080112044C9117090FD79AB44A9C26781A0DE79772B35B73139ADEF3A45610CCCEF8833BE803E7F9D15CA37D3693761C360E654BEE8F007156ED0385B935037B5F4C767D1C11142B3E504AC1D95E47AB63815239DA532062D2F5411C97BB67E1C97818FE75331BF90C4CE0AB55C046</crypted>
+		<attribute name="TypeCodeCheckSumString" value="A6E1"></attribute>
+		<attribute name="TypeSignatureCheckSumString" value="50DB"></attribute>
+		<ExternalToolsOnly>
+			<inputParameters>
+				<variables name="IN" typeName="UINT">
+					<attribute name="PositionPin" value="2"></attribute>
+				</variables>
+			</inputParameters>
+			<outputParameters>
+				<variables name="OUT" typeName="INT">
+					<attribute name="PositionPin" value="2"></attribute>
+				</variables>
+			</outputParameters>
+		</ExternalToolsOnly>
+	</FBSource>
+	<FBSource nameOfFBType="COLA" version="2.05" dateTime="dt#2009-04-07-13:00:51">
+		<crypted>8805EC2008B76BC98E4E6580742A1088ECD429ED24463694A701F6E74294A7D965C1A7702D120A72D3660F4BC0F5135F50C8C4D42302CEBCB296D91D6D78C33A33C0D01692C0E9C14BDA4460960656F91B144FA0DD41DAE2FEA305491835CDA2D47B5E001192885DCC8DD996B85F13453F462FA7926BE9B45E40CF7CEF8A491ACC22A03639FB624358E7C5492385330B28A95D48A7053E8822C45CC995C2416F9FF4508AAE3F4FA42ADCD09816095F97E8BFE8CC60DE40D44640AEF7E901F408F80E9B78BEBFF71492923AEB28CDAE4417E13B1ABC020AD3B9233C8CC0F13C34781B354E8C0DD803D158479800FA0A8456E966E4E2B0B05F2ADBC6B7B044C7A6F0486DF8CC6B0E1D1463AFFD13A6FC94581D12A33266EE53BFC73C0E2BD3E5ED453D5A137306F86DCF3814BD479A2E8DBC6BB0E896ED71C5E068779CD6125457511AA47A29CF0E6DB9FEC40C8F36E11231BD8722C0CC9536C4086F41CD4BFB64654485C21ABE8D61791F99099F1313AE5EC7A1955454718AF630BDBBFE3844DE748CE2A63D72B4B405FC93DA6B7A25B02CA3360AD1E53A89F0EF7240C8100362C74897AE0643DE4D03E6024F7D2A9742797A7FB9D0781406FE0E10CC4BA7EBE7001A8E1B7E0758CBE73BB1BE6B1F4B12DEC98E9E80DF7703AE417E7ECFECFB42ABAE30D4BA1491E384ED2C105AEBC410DB6318BAD2A76660D0A456FA43E491F66AA9A42BEBB5E0DDE17C57E05742BC560B766B249C85E2E230FF7AD7AFD2068B79E82F417C66FA68AA7DDBBD1C9BE51175388B669270AC09746D30986DAA479D8CD45781912ED9E7F0C56B6405E7ECF74C893EE6BD594346FF0F4FE1DC15F40455683B327860FE563DEFB6B187E9F3E56C615D7D85C5080E825D10FE98BF066BCAE81655090A7298C53881B75E2809E3E56D589B79D924676DB0B239232E2DA09411518F90E99025F3AE37EB0B7819BE14E0F7985A609FCC2C46277D64A1A3411A4C7BA1B09472DAE0EC2787608585851DDD84248BAFDEF67216278EFBC746CD9D3AF878DEEC7DC862A2C66968362C8F5EC393B61863A2AD04042FEB1964487B30CA236A287789B7C5C36F0D401A125F2F72E0CCEDC961B190571B8A12146F77F2CF7ED0EE0C15A2416C60C78633A81EDA07FBA17E9E1D5B0A6F8D60EA42FD6360F98C81D8920AF103BEA6D47D1A2B8B002260E50A405926E4CA2C1E8D3FA19484BA258961C7329A8EE62BBE9FB042634B9D760A171EDC958EC3FA70A43D1009930084775BD4367DB3B402DE8D4ED1DF36D099B8325AE481D5D3010889D08C4FB28BC1386E62817617015F6DF49F3A8359BEF4EB29B316EE3031721BDE65B200451E1C7F9A44728C6EC81AAD13622EAAF794170F4B9CC4F0B9B217B6331145C9488C32293183986E5A61D13CC0FB0C63982481DBCCF9C0A2D390E88377ADB97A46D03FA74FE0783049F3754177F66586DBC5A38561B6307CDF76D2B96DC3D07D0E93DDA9A65A00010A0C5CE9BD5A9CCA3E434F16FE232610FBF85F6E45716DB690E2308CECF78979DF56981BD29F30F06188178177ACC24808FD5633CD1867294CF4EEA0ECDCF3844E57CC336819CC7DBD19AFF0ED67489632379CABE194A1FD09BE6844C2762AA8D144A68AE6A3F851758A13D5FD53619A483F5B7A57FFBD6C4709A9E8C6F207632743B1A0B8EE08C4EABB6CF73E5DC74158162417D6702EA2C2CA8B38330888F66CC3F316C1D7370AE1B027B5D6F9F30F9BB05F63B6F9D0CC4216EA6B031FADF5063CF53B2BF967180E3AABB589FBAFE66A5CEF09EFDA1009AE091DD80BFEBE8703C36378B3A0489E7ACF815842FF6602A5883785DC09EDCEB090019CEC180852A4288A45F1D05D8FD56D3DA1FBE0213B08AF308DBA333CBC9599E973ECDA13532A22502B87F233F7AD52C5FEBA0C18ED6BA660D0A11BA1AB59971269B556FC22218E3BEB657CB1D926C5E15075FA2A6DC416262619F7EED559480FB3B697A869DF48AB1A66C3C81154C562984F1DE79873085D7E703FF3B1971BCF24D936C82734D35AD6E555AF21E3E4BA0D8AEB6F9F05309954DC2D270B8BC5411D09097A415339624FD951A47F77C9BB8201DF53BDB00D8B73429F30322787E12B2C3F7D6DBF7D831D736399C4F8638560896DE43588AB0F1A70E8C8BFA92656ADBC971778639BB541B8E702F3326C0CEFA94DEFE7AD6268A6739963B4CD105ADDB63FAA9A9447305F3583127EEE5D9FD5B9C12E844F7A74980B96DD1FC56F015447D6761FD1ADA1CE5A579735057EEB8A91E5348D33B8D0E9AC59316450EF0B91BC787D5B2E6D38CB1CB02C68F9B38E7FF87CC9A8B470DE607F49B3209202CECE77B226DC36AB814E9C63A8D833378017334178EBD60E0D4656E9813BE9908AE14B2CE0625435B08F35E0EF34E90F80BB0622619DE5D992EC4E596E8CCE3D1E8BE37A1CEF3CCCE14CDB61C7FA62AFEC83C46224BF07C3B87431619CF5BF697557AB05D6BD632B1DE8D0CC412E78FABC15536F8C31DB8BD4ECB6CF709095318027004340426A59B28F2ACA88D6B8EB44DCD6E9D74D89BF902F157F806C0DA053C220F391D47B736AB6B7FC75B60EDAB635F6619C869D9B02DA46DA79DDBA7F12383604A7B19092922FD5913F7566EC0B2AF2DAACDF6025FA3F28076D5F5108E29BCC329BA68606844E2789A784A0CD0C834D774FC52B6273445F551F3AAD5344F980A3CC693F659B0B1197F1A3359B8E209D6DF60CF5ADC823F1B66A1BFF5A97A67995199B0D8F4C8542188102CA3F6ED0DA3989FADDF897A23E361018F3CE8FA718376F952F2AD1011FA8D54F4694D2F2EF7A840766433F50D72A85F8F9D1FEABEE5D0743DD3F99F63FEE89E04E6B13E4D974B6DC71C2DFAC7F8C71CE417E21E885582C6EC730D1418486759401307AFC45EFA9419710EC3297D10F188CA67A349C012B4470C5F1502C0BC90D34E0081F7811327C0EBFA11A0082902210B8977F633B700018ECADB6F3FC55668735D2F8054A158BC75D3CE2167ABD5CD873D1E9BB534EE3A62FC1B3B3F729798B78087A08E31800D459EC23F3945297E08765CEC455010EE5C99AEF3F64D9EC5176E166DD139F58788691E11B07B4C98B52A7E639D0930AE39DE1A09D6D83073ACF7BBA32B74D023C40763E93344E5F91DAE759ADBA1A2AC1A17E7BF70BEFA41818A505E4F9ABA2C0BA181D50400CDB95CBC2C8B0978BFE35058FA36B2B31A9ECBA6E559B0AFCFB433D7F5522CDA580F3572EDAD5958E2EE1B7AFE0D06B8449A135F9E2CEBFB92B51227C1FA3EBFA75AFB956A9CA4DBFAEE9B9A8CBC55E0393F01824418BFB59396778DE75AE99D65941A8EA82553C859C95F8C8F82E7587D02F2220F7CD6DC50EDC86A411F0F4BF0F68B26942CBC8772256B74CBA11FEBDD87BCF0EB6911853F3E0D09324787DF88927F8CEC9AEEEA900DB4008207B70D02F7E7908B65B729E98EE06FA25C2680834A2DF8D97652D00188C5BDB1DAC049F9C98A02A67641DBFE4C2C451329FBB81AF06BD981FD0B2D47156A3C387EF535C1639AC54C20FEF352688389A9273032736E6114D835C5A320C4D8DF2946C30438FEE4EF5F1DA0C5005383D74749CF7807D0EDFB3D261C78650A7B5CE190AA8DC73DBDECDE0EB1F39EF8D40C7B071506C902E659CFCCE4E6893A420119C86142194B9DB184A5D90389A8F0304E6B5C93BA64DA8E1317E844551EBE0335F04305FFA4727325232686010D53F0A1A6F95F2392A4466752A6B4E4E6461FAC11DD7B1F1E4128D553856784AC473AC65E4017E7E4931772E03ED489FC472FB53A7186036B1D5DE866442D37F556435755E843CEB7462483D3E7F31805806EEECD9EC44DC0A775E7431048E27184D8EDC9BEDCE8EC85B4F343A7F64300D0473040A9C45870E1D27D7B2B1345AC66C2B79083C4363699EE3F73E151E2D5BEAC86C176C96351196FA124BD1EC83D772C1BB33FC761D6F68BAB37C84AD99C2D2D9DDF5403558F658375104F7CF30429199E15CCCE60D720FB3BE9F3FA2666A97F60FF0766E18FF64E9F2B6C21B564B0EC5B1A426BB6AB1B88614D0A42EC0A5FE3ABB9862D2E77C15FD5CD5ABDAA1FE3B5924D94C5D74F455020E20E6F07FCC9B2BB9249B5CD585F54C1D17E108EF77F2909E6F35FB937F88621CDEB0CF4012CEFCD77ADDF19BEBCE426883D6E1E4BF0FA51FFB0B7F56C30AE57C97FD97A438CC9BA0B56DEEFEC059405B438AE82A5FDD2F96661C8AC4A092778C233C425A93562AAA2C5B7DC20E4C1D370BBA0B0993651F9D3E67298592A86C0077AD5FAA08FB200395F1E12AF6801E669F97AA40F173263153F35AF54F8B3DDCDD7ADA1DA09E513F2A2F7BAACA48D21B2767E56705D34F8F858D2B195875965FD5AEC3D2711CA3FFC684ECE78C1A453B4BFB</crypted>
+		<attribute name="TypeCodeCheckSumString" value="93C5"></attribute>
+		<attribute name="TypeSignatureCheckSumString" value="47F1"></attribute>
+		<ExternalToolsOnly>
+			<inputParameters>
+				<variables name="COMANDA" typeName="INT">
+					<attribute name="PositionPin" value="1"></attribute>
+				</variables>
+				<variables name="TIPO_ENT" typeName="INT">
+					<attribute name="PositionPin" value="3"></attribute>
+				</variables>
+				<variables name="LONG_ENT" typeName="INT">
+					<attribute name="PositionPin" value="4"></attribute>
+				</variables>
+				<variables name="LONG_COL" typeName="INT">
+					<attribute name="PositionPin" value="5"></attribute>
+				</variables>
+				<variables name="BUF_ENTR" typeName="intarraycola">
+					<attribute name="PositionPin" value="2"></attribute>
+				</variables>
+			</inputParameters>
+			<outputParameters>
+				<variables name="PUNTERO" typeName="INT">
+					<attribute name="PositionPin" value="1"></attribute>
+				</variables>
+				<variables name="TIPO_SAL" typeName="INT">
+					<attribute name="PositionPin" value="2"></attribute>
+				</variables>
+				<variables name="LONG_SAL" typeName="INT">
+					<attribute name="PositionPin" value="3"></attribute>
+				</variables>
+				<variables name="CABECERA" typeName="INT">
+					<attribute name="PositionPin" value="5"></attribute>
+				</variables>
+				<variables name="BORRA" typeName="INT">
+					<attribute name="PositionPin" value="6"></attribute>
+				</variables>
+				<variables name="PERDIDOS" typeName="INT">
+					<attribute name="PositionPin" value="7"></attribute>
+				</variables>
+				<variables name="AL_BUF" typeName="BOOL">
+					<attribute name="PositionPin" value="8"></attribute>
+				</variables>
+			</outputParameters>
+			<publicLocalVariables>
+				<variables name="buf_sal" typeName="intarraycola"></variables>
+			</publicLocalVariables>
+		</ExternalToolsOnly>
+	</FBSource>
+	<DDTSource DDTName="colacortaarray" version="2.00" dateTime="dt#2009-03-16-15:13:31">
+		<attribute name="TypeSignatureCheckSumString" value="ABF3"></attribute>
+		<array>ARRAY[0..4000] OF INT</array>
+	</DDTSource>
+	<FBSource nameOfFBType="LECTURAS_MB_READ_VAR_M340" version="0.05" dateTime="dt#2009-09-29-15:15:42">
+		<attribute name="TypeProtectionLevel" value="2#0000_0000"></attribute>
+		<attribute name="TypeCodeCheckSumString" value="CE5E"></attribute>
+		<attribute name="TypeSignatureCheckSumString" value="A451"></attribute>
+		<inputParameters>
+			<variables name="NUMERO_LECTURAS" typeName="INT">
+				<attribute name="PositionPin" value="1"></attribute>
+			</variables>
+			<variables name="NUMERO_REINTENTOS" typeName="INT">
+				<attribute name="PositionPin" value="2"></attribute>
+			</variables>
+			<variables name="NUEVO_COMIENZO_INDEXADO" typeName="INT">
+				<attribute name="PositionPin" value="3"></attribute>
+			</variables>
+			<variables name="HABILITAR" typeName="BOOL">
+				<attribute name="PositionPin" value="4"></attribute>
+			</variables>
+		</inputParameters>
+		<inOutParameters>
+			<variables name="ARRAY_LECTURAS" typeName="ARRAY[1..100] OF Lecturas_Read_Var">
+				<attribute name="PositionPin" value="5"></attribute>
+			</variables>
+			<variables name="ARRAY_GEST" typeName="ARRAY[1..4] OF INT">
+				<attribute name="PositionPin" value="6"></attribute>
+			</variables>
+			<variables name="MODIFICAR_PETICION" typeName="BOOL">
+				<attribute name="PositionPin" value="7"></attribute>
+			</variables>
+			<variables name="CONTAJE_INDEX_READ_VAR" typeName="INT">
+				<attribute name="PositionPin" value="8"></attribute>
+			</variables>
+		</inOutParameters>
+		<outputParameters>
+			<variables name="BUSY" typeName="BOOL">
+				<attribute name="PositionPin" value="1"></attribute>
+			</variables>
+			<variables name="INDEX" typeName="INT">
+				<attribute name="PositionPin" value="2"></attribute>
+			</variables>
+		</outputParameters>
+		<privateLocalVariables>
+			<variables name="COM_OK" typeName="EBOOL"></variables>
+		</privateLocalVariables>
+		<FBProgram name="Comunicacion">
+			<STSource>COM_OK:=ARRAY_GEST[1].0 &amp; Numero_lecturas&gt;0;
+ 
+if fe (COM_OK) then
+
+	if ARRAY_GEST[2]=0 then
+		ARRAY_LECTURAS[INDEX].Reintentos:=Numero_reintentos;
+		ARRAY_LECTURAS[INDEX].Fallo:=FALSE;
+		ARRAY_LECTURAS[INDEX].Codigo_fallo:=0;		
+			if INDEX&gt;=Numero_lecturas then 
+			INDEX:=1;
+                        Contaje_INDEX_Read_Var:=Contaje_INDEX_Read_Var+1;
+			else
+			inc (INDEX);
+                        Contaje_INDEX_Read_Var:=Contaje_INDEX_Read_Var+1;
+			end_if;
+
+			if modificar_peticion then
+		        INDEX:=Nuevo_comienzo_indexado;
+                        Contaje_INDEX_Read_Var:=0;
+			modificar_peticion:=0;
+			end_if;
+	else 
+			if ARRAY_LECTURAS[INDEX].Reintentos=0 then
+			ARRAY_LECTURAS[INDEX].Fallo:=TRUE;
+			ARRAY_LECTURAS[INDEX].Codigo_fallo:=INT_TO_BYTE (ARRAY_GEST[2]);
+				if INDEX&gt;=Numero_lecturas then
+				INDEX:=1;
+                                Contaje_INDEX_Read_Var:=Contaje_INDEX_Read_Var+1;
+				else
+				inc (INDEX);
+                                Contaje_INDEX_Read_Var:=Contaje_INDEX_Read_Var+1;
+				end_if;	
+			else
+			dec (ARRAY_LECTURAS[INDEX].Reintentos);
+			end_if;
+
+			if modificar_peticion then
+			ARRAY_LECTURAS[INDEX].Reintentos:=Numero_reintentos;
+		        INDEX:=Nuevo_comienzo_indexado;
+                        Contaje_INDEX_Read_Var:=0;
+			modificar_peticion:=0;
+			end_if;
+	end_if;
+End_if;
+
+
+Busy:=COM_OK;
+</STSource>
+		</FBProgram>
+		<FBProgram name="Analizador">
+			<FBDSource nbRows="24" nbColumns="36">
+				<networkFBD>
+					<FFBBlock instanceName=".1" typeName="ADDM" additionnalPinNumber="0" enEnO="false" width="7" height="5">
+						<objPosition posX="16" posY="21"></objPosition>
+						<descriptionFFB execAfter="">
+							<inputVariable invertedPin="false" formalParameter="EN"></inputVariable>
+							<inputVariable invertedPin="false" formalParameter="IN" effectiveParameter="Array_lecturas[INDEX].Terminal"></inputVariable>
+							<outputVariable invertedPin="false" formalParameter="ENO"></outputVariable>
+							<outputVariable invertedPin="false" formalParameter="OUT"></outputVariable>
+						</descriptionFFB>
+					</FFBBlock>
+					<FFBBlock instanceName=".2" typeName="READ_VAR" additionnalPinNumber="0" enEnO="true" width="8" height="9">
+						<objPosition posX="43" posY="16"></objPosition>
+						<descriptionFFB execAfter="">
+							<inputVariable invertedPin="false" formalParameter="EN" effectiveParameter="NOT ARRAY_GEST[1].0&amp;Numero_lecturas&gt;0 &amp; Habilitar"></inputVariable>
+							<inputVariable invertedPin="false" formalParameter="ADR"></inputVariable>
+							<inputVariable invertedPin="false" formalParameter="OBJ" effectiveParameter="Array_lecturas[INDEX].Objeto"></inputVariable>
+							<inputVariable invertedPin="false" formalParameter="NUM" effectiveParameter="Array_lecturas[INDEX].Dir_inicial_terminal"></inputVariable>
+							<inputVariable invertedPin="false" formalParameter="NB" effectiveParameter="Array_lecturas[INDEX].Num_palabras"></inputVariable>
+							<inputVariable invertedPin="false" formalParameter="GEST" effectiveParameter="ARRAY_GEST"></inputVariable>
+							<outputVariable invertedPin="false" formalParameter="ENO"></outputVariable>
+							<outputVariable invertedPin="false" formalParameter="GEST" effectiveParameter="ARRAY_GEST"></outputVariable>
+							<outputVariable invertedPin="false" formalParameter="RECP" effectiveParameter="Array_lecturas[INDEX].Array_destino"></outputVariable>
+						</descriptionFFB>
+					</FFBBlock>
+					<linkFB>
+						<linkSource parentObjectName=".1" pinName="OUT">
+							<objPosition posX="22" posY="25"></objPosition>
+						</linkSource>
+						<linkDestination parentObjectName=".2" pinName="ADR">
+							<objPosition posX="43" posY="20"></objPosition>
+						</linkDestination>
+						<gridObjPosition posX="24" posY="25"></gridObjPosition>
+						<gridObjPosition posX="24" posY="20"></gridObjPosition>
+					</linkFB>
+				</networkFBD>
+			</FBDSource>
+		</FBProgram>
+	</FBSource>
+</PGMExchangeFile>

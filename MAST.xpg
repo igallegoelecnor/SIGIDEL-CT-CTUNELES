@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <PGMExchangeFile>
-	<fileHeader company="Schneider Automation" product="Unity Pro XL V12.0 - 170404A" dateTime="date_and_time#2022-5-17-12:34:41" content="Fichero fuente de multi programa" DTDVersion="41"></fileHeader>
-	<contentHeader name="Proyecto" version="0.0.460" dateTime="date_and_time#2022-5-17-13:5:12"></contentHeader>
+	<fileHeader company="Schneider Automation" product="Unity Pro XL V12.0 - 170404A" dateTime="date_and_time#2022-5-17-16:49:17" content="Fichero fuente de multi programa" DTDVersion="41"></fileHeader>
+	<contentHeader name="Proyecto" version="0.0.463" dateTime="date_and_time#2022-5-17-14:54:46"></contentHeader>
 	<logicConf>
 		<resource resName="Micro Basic" resIdent="BMX P34 2020 02.70">
 			<taskDesc task="MAST" taskType="cyclic" valueType="0" maxExecTime="250">
@@ -36,7 +36,7 @@
 
 (*Al pasar de stop a run*)
 PRIMER_CICLO:=%S21;
-(*Hola que pasa*)
+
 IF PRIMER_CICLO THEN
 	AUX_P_C:=0;
 	TEMP_P_C:=0;
@@ -1116,13 +1116,11 @@ FOR I:=1 TO K DO
 		END_IF;	
 	END_IF;
 END_FOR;
-
 </STSource>
 	</program>
 	<program>
 		<identProgram name="SECCION_NUMEROS_MANDOS_SD" protectionInfo="notReadable" type="section" task="MAST"></identProgram>
-		<STSource>
-%Q0.6.0:=SALIDA[1] AND NOT SEGURIDAD;
+		<STSource>%Q0.6.0:=SALIDA[1] AND NOT SEGURIDAD;
 %Q0.6.1:=SALIDA[2] AND NOT SEGURIDAD;
 %Q0.6.2:=SALIDA[3] AND NOT SEGURIDAD;
 %Q0.6.3:=SALIDA[4] AND NOT SEGURIDAD;
@@ -1154,7 +1152,6 @@ END_FOR;
 %Q0.7.13:=SALIDA[30] AND NOT SEGURIDAD;
 %Q0.7.14:=SALIDA[31] AND NOT SEGURIDAD;
 %Q0.7.15:=SALIDA[32] AND NOT SEGURIDAD;
-
 </STSource>
 	</program>
 	<program>
@@ -1705,9 +1702,12 @@ END_IF;
 	</program>
 	<dataBlock>
 		<variables name="BUF_EMISION" typeName="intarraycola"></variables>
-		<variables name="B_TRATA_EQUIPOS_PLC_7" typeName="INTARRAY40" topologicalAddress="%MW7780"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_7" typeName="INTARRAY40" topologicalAddress="%MW7780">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="AUX_PRIMER_CICLOB" typeName="BOOL"></variables>
 		<variables name="IP_3_4" typeName="BYTE" topologicalAddress="%MW38">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0000_0001"></variableInit>
 		</variables>
 		<variables name="EQUIPO_5" typeName="INT">
@@ -1715,67 +1715,88 @@ END_IF;
 			<variableInit value="-32752"></variableInit>
 		</variables>
 		<variables name="PRIMER_CICLO_COMUNIC_OK" typeName="BOOL"></variables>
-		<variables name="BUF_AUX_EDC" typeName="intarraycola"></variables>
-		<variables name="BUF_SAL" typeName="intarraycola" topologicalAddress="%MW6000"></variables>
 		<variables name="IP_NOE1_EQUIPO3" typeName="string[35]">
 			<variableInit value="0.1.0{192.1.4.91}"></variableInit>
 		</variables>
-		<variables name="B_TRATA_EQUIPOS_PLC_4" typeName="INTARRAY40" topologicalAddress="%MW7660"></variables>
-		<variables name="SEGUNDOS_PLC" typeName="INT" topologicalAddress="%MW64"></variables>
-		<variables name="COM_LIBRE" typeName="BOOL"></variables>
-		<variables name="WTB20" typeName="WORD_TO_BIT_DFB"></variables>
-		<variables name="SALIDAS_DIGITALES_ANTES_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
-		<variables name="BUF_ENTR" typeName="intarraycola"></variables>
+		<variables name="WTB10" typeName="WORD_TO_BIT_DFB"></variables>
+		<variables name="BUF_SAL" typeName="intarraycola" topologicalAddress="%MW6000">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="ESCRITURAS_ETH_REQ_EQ" typeName="BOOL"></variables>
-		<variables name="INDEX_READVAR_TRAS_PETICION" typeName="INT"></variables>
+		<variables name="SEGUNDOS_PLC" typeName="INT" topologicalAddress="%MW64">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="BUF_AUX_EDC" typeName="intarraycola"></variables>
+		<variables name="COM_LIBRE" typeName="BOOL"></variables>
+		<variables name="SALIDAS_DIGITALES_ANTES_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_4" typeName="INTARRAY40" topologicalAddress="%MW7660">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="BUF_ENTR" typeName="intarraycola"></variables>
 		<variables name="EQUIPO4" typeName="BOOL"></variables>
-		<variables name="MES_PLC" typeName="INT" topologicalAddress="%MW59"></variables>
+		<variables name="MES_PLC" typeName="INT" topologicalAddress="%MW59">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="DIGITAL_ANTES_WORD" typeName="WORDARRAY32"></variables>
 		<variables name="COMUNICACION_SCAN" typeName="INT"></variables>
-		<variables name="MANDO_2" typeName="WORD"></variables>
+		<variables name="MANDO_ED_PV_TEMPORIZ" typeName="INTARRAY400"></variables>
 		<variables name="aux_4" typeName="UINT"></variables>
 		<variables name="MATRIZ_DIGITAL_CALCULADAS_WORD" typeName="ARRAY[1..40] OF WORD"></variables>
-		<variables name="MANDO_SP_TEMPORIZ" typeName="INTARRAY400"></variables>
 		<variables name="IP_3_3" typeName="BYTE" topologicalAddress="%MW34">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0000_0001"></variableInit>
 		</variables>
 		<variables name="SEGURIDAD" typeName="BOOL"></variables>
 		<variables name="PERDIDAS_SD" typeName="INT"></variables>
-		<variables name="FBI_24_28" typeName="TOF"></variables>
 		<variables name="CAMBIOS_EQUIPOS" typeName="INT"></variables>
+		<variables name="TEMP_SGC_PDC" typeName="WORD"></variables>
 		<variables name="ANALOGICAS_EQ_ANTERIOR" typeName="WORD"></variables>
+		<variables name="MANDO_EN_CURSO" typeName="BOOLARRAY400"></variables>
 		<variables name="COMUNIC_EQUIPOS_OK" typeName="BOOL"></variables>
-		<variables name="SOCOMEC1_V31" typeName="REAL" topologicalAddress="%MW3004"></variables>
-		<variables name="CONTESTA_ETH_OK" typeName="INT"></variables>
+		<variables name="SOCOMEC1_V31" typeName="REAL" topologicalAddress="%MW3004">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="DIGITAL_CALCULADAS_ANTES" typeName="ARRAY[1..64] OF INT"></variables>
 		<variables name="ESTADO_COMUNIC_ACTIVA_WORD" typeName="WORD"></variables>
-		<variables name="SOCOMEC1_P_TOTAL" typeName="REAL" topologicalAddress="%MW3024"></variables>
-		<variables name="ANALOGICAS_EQUIPO1_ACTUAL" typeName="INTARRAY40" topologicalAddress="%MW6500"></variables>
-		<variables name="SALIDAS_DIGITALES_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW108"></variables>
-		<variables name="WTB10" typeName="WORD_TO_BIT_DFB"></variables>
+		<variables name="WTB20" typeName="WORD_TO_BIT_DFB"></variables>
+		<variables name="SOCOMEC1_P_TOTAL" typeName="REAL" topologicalAddress="%MW3024">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="ANALOGICAS_EQUIPO1_ACTUAL" typeName="INTARRAY40" topologicalAddress="%MW6500">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="SALIDAS_DIGITALES_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW108">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="NMANDO_2" typeName="INT"></variables>
 		<variables name="ED_CALCULADAS" typeName="CALCULADAS"></variables>
 		<variables name="Ocupado_lecturas_READ_VAR" typeName="BOOL"></variables>
 		<variables name="TEMP_SGC" typeName="INT"></variables>
 		<variables name="ESCRITURAS_ETH_ERROR" typeName="BOOL"></variables>
-		<variables name="MANDO_ED_PV_TEMPORIZ" typeName="INTARRAY400"></variables>
+		<variables name="INDEX_READVAR_TRAS_PETICION" typeName="INT"></variables>
 		<variables name="AUX_ED_PC" typeName="Boolarray32"></variables>
 		<variables name="IP_3" typeName="BYTE"></variables>
 		<variables name="IP_2_3" typeName="BYTE" topologicalAddress="%MW35">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0000_0100"></variableInit>
 		</variables>
+		<variables name="FBI_24_28" typeName="TOF"></variables>
 		<variables name="WTB6" typeName="WORD_TO_BIT_DFB"></variables>
 		<variables name="ESCRITURAS_ETH_NO_REG_EQ" typeName="WORD"></variables>
 		<variables name="BORRAR_BUF_AUX" typeName="intarraycola"></variables>
-		<variables name="SOCOMEC2_IS" typeName="REAL" topologicalAddress="%MW3108"></variables>
-		<variables name="TEMP_SGC_PDC" typeName="WORD"></variables>
+		<variables name="MANDO_SP_TEMPORIZ" typeName="INTARRAY400"></variables>
+		<variables name="SOCOMEC2_IS" typeName="REAL" topologicalAddress="%MW3108">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="IP_2" typeName="BYTE"></variables>
-		<variables name="B_TRATA_EQUIPOS" typeName="INTARRAY40" topologicalAddress="%MW640"></variables>
+		<variables name="B_TRATA_EQUIPOS" typeName="INTARRAY40" topologicalAddress="%MW640">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="H2" typeName="INT"></variables>
+		<variables name="CONTESTA_ETH_OK" typeName="INT"></variables>
 		<variables name="WRITE4X" typeName="PUT4X"></variables>
 		<variables name="H3" typeName="INT"></variables>
-		<variables name="ANALOGICAS_EQUIPOS_1_16" typeName="WORD" topologicalAddress="%MW993"></variables>
-		<variables name="H2" typeName="INT"></variables>
-		<variables name="MANDO_EN_CURSO" typeName="BOOLARRAY400"></variables>
+		<variables name="MANDO_2" typeName="WORD"></variables>
 		<variables name="TEMP_PDC_SGC" typeName="WORD"></variables>
 		<variables name="L" typeName="INT"></variables>
 		<variables name="EQUIPO_2" typeName="INT">
@@ -1784,16 +1805,22 @@ END_IF;
 		</variables>
 		<variables name="MATRIZ_DIGITAL_CALCULADAS" typeName="ARRAY[1..40] OF INT"></variables>
 		<variables name="IP_1_1" typeName="BYTE" topologicalAddress="%MW28">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0101_0001"></variableInit>
 		</variables>
 		<variables name="DIGITAL_ACTUAL" typeName="ARRAY[1..32] OF INT"></variables>
-		<variables name="CONT_OK_ETH" typeName="INT"></variables>
+		<variables name="ANALOGICAS_EQUIPOS_1_16" typeName="WORD" topologicalAddress="%MW993">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="H5" typeName="INT"></variables>
-		<variables name="SOCOMEC1_COSENO" typeName="REAL" topologicalAddress="%MW3030"></variables>
+		<variables name="SOCOMEC1_COSENO" typeName="REAL" topologicalAddress="%MW3030">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="ESCRITURAS_ETH_DONE" typeName="BOOL"></variables>
 		<variables name="GR_CTRL_PLC_1_FS" typeName="BOOL">
 			<comment>PLC EN "FUERA DE SERVICIO"</comment>
 		</variables>
+		<variables name="EQUIPO3" typeName="BOOL"></variables>
 		<variables name="ANALOGICAS_EQUIPOS_ACTUAL" typeName="ARRAY[1..64] OF INT"></variables>
 		<variables name="N" typeName="INT"></variables>
 		<variables name="EQUIPO_4" typeName="INT">
@@ -1801,27 +1828,30 @@ END_IF;
 			<variableInit value="-32760"></variableInit>
 		</variables>
 		<variables name="ESCRITURAS_ETH_DONE_EQ" typeName="BOOL"></variables>
-		<variables name="IP_1_3" typeName="BYTE" topologicalAddress="%MW36">
-			<variableInit value="2#0101_1011"></variableInit>
+		<variables name="H4" typeName="INT"></variables>
+		<variables name="EQUIPO_10" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32256"></variableInit>
 		</variables>
-		<variables name="IP_3_1" typeName="BYTE" topologicalAddress="%MW26">
-			<variableInit value="2#0000_0001"></variableInit>
-		</variables>
-		<variables name="FALLO_PUERTO_SERIE" typeName="BOOL" topologicalAddress="%I0.0.0.ERR"></variables>
 		<variables name="LONG_SAL" typeName="INT"></variables>
-		<variables name="MINUTOS_PLC" typeName="INT" topologicalAddress="%MW63"></variables>
-		<variables name="B_TRATA_EQUIPOS_PLC_5" typeName="INTARRAY40" topologicalAddress="%MW7700"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_5" typeName="INTARRAY40" topologicalAddress="%MW7700">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="EQUIPO_7" typeName="INT">
 			<attribute name="IsConstant" value="-1"></attribute>
 			<variableInit value="-32704"></variableInit>
 		</variables>
 		<variables name="MSEG_PLC" typeName="INT"></variables>
 		<variables name="IP_1_2" typeName="BYTE" topologicalAddress="%MW32">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0101_0001"></variableInit>
 		</variables>
 		<variables name="SALIDA" typeName="BOOLARRAY400"></variables>
 		<variables name="CONTROL_IP" typeName="DINT"></variables>
-		<variables name="H4" typeName="INT"></variables>
+		<variables name="IP_1_3" typeName="BYTE" topologicalAddress="%MW36">
+			<attribute name="TimeStampSource" value="0"></attribute>
+			<variableInit value="2#0101_1011"></variableInit>
+		</variables>
 		<variables name="COLA_MAX" typeName="INT">
 			<variableInit value="4000"></variableInit>
 		</variables>
@@ -1829,144 +1859,38 @@ END_IF;
 			<variableInit value="0.1.0{192.1.4.81}"></variableInit>
 		</variables>
 		<variables name="DIGITAL_CALCULADAS_ACTUAL_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
-		<variables name="ENLACE_COMUNIC_OK_LECTURA" typeName="INT" topologicalAddress="%MW67"></variables>
-		<variables name="aux" typeName="BOOL"></variables>
-		<variables name="Lecturas_SACIS" typeName="ARRAY[1..100] OF Lecturas_Read_Var">
-			<comment>lectura de variables del sepam</comment>
-			<instanceElementDesc name="[1]">
-				<instanceElementDesc name="Terminal">
-					<value>0.0.0.1</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Dir_inicial_terminal">
-					<value>50514</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Num_palabras">
-					<value>20</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Objeto">
-					<value>%MW</value>
-				</instanceElementDesc>
-			</instanceElementDesc>
-			<instanceElementDesc name="[2]">
-				<instanceElementDesc name="Objeto">
-					<value>%MW</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Dir_inicial_terminal">
-					<value>50536</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Num_palabras">
-					<value>8</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Terminal">
-					<value>0.0.0.1</value>
-				</instanceElementDesc>
-			</instanceElementDesc>
-			<instanceElementDesc name="[3]">
-				<instanceElementDesc name="Objeto">
-					<value>%MW</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Terminal">
-					<value>0.0.0.1</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Dir_inicial_terminal">
-					<value>50780</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Num_palabras">
-					<value>10</value>
-				</instanceElementDesc>
-			</instanceElementDesc>
-			<instanceElementDesc name="[5]">
-				<instanceElementDesc name="Objeto">
-					<value>%MW</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Terminal">
-					<value>0.0.0.2</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Dir_inicial_terminal">
-					<value>50514</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Num_palabras">
-					<value>20</value>
-				</instanceElementDesc>
-			</instanceElementDesc>
-			<instanceElementDesc name="[6]">
-				<instanceElementDesc name="Terminal">
-					<value>0.0.0.2</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Dir_inicial_terminal">
-					<value>50536</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Num_palabras">
-					<value>8</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Objeto">
-					<value>%MW</value>
-				</instanceElementDesc>
-			</instanceElementDesc>
-			<instanceElementDesc name="[4]">
-				<instanceElementDesc name="Terminal">
-					<value>0.0.0.1</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Dir_inicial_terminal">
-					<value>51542</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Num_palabras">
-					<value>4</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Objeto">
-					<value>%MW</value>
-				</instanceElementDesc>
-			</instanceElementDesc>
-			<instanceElementDesc name="[7]">
-				<instanceElementDesc name="Terminal">
-					<value>0.0.0.2</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Dir_inicial_terminal">
-					<value>50780</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Num_palabras">
-					<value>10</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Objeto">
-					<value>%MW</value>
-				</instanceElementDesc>
-			</instanceElementDesc>
-			<instanceElementDesc name="[8]">
-				<instanceElementDesc name="Dir_inicial_terminal">
-					<value>51542</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Terminal">
-					<value>0.0.0.2</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Num_palabras">
-					<value>4</value>
-				</instanceElementDesc>
-				<instanceElementDesc name="Objeto">
-					<value>%MW</value>
-				</instanceElementDesc>
-			</instanceElementDesc>
+		<variables name="ENLACE_COMUNIC_OK_LECTURA" typeName="INT" topologicalAddress="%MW67">
+			<attribute name="TimeStampSource" value="0"></attribute>
 		</variables>
+		<variables name="aux" typeName="BOOL"></variables>
 		<variables name="TIPO_SAL" typeName="INT"></variables>
 		<variables name="MATRIZ_SALIDAS_DIGITALES" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="MINUTOS_PLC" typeName="INT" topologicalAddress="%MW63">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="MANDO_1" typeName="WORD"></variables>
 		<variables name="MANDO_PV_TEMPORIZ" typeName="INTARRAY400"></variables>
-		<variables name="B_TRATA_EQUIPOS_PLC_10" typeName="INTARRAY40" topologicalAddress="%MW7900"></variables>
-		<variables name="ESCRITURAS_ETH_DONE_TE" typeName="BOOL"></variables>
-		<variables name="APUNTE_SD" typeName="INT">
-			<variableInit value="3"></variableInit>
+		<variables name="CONT_MSTR_ERROR" typeName="INT"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_10" typeName="INTARRAY40" topologicalAddress="%MW7900">
+			<attribute name="TimeStampSource" value="0"></attribute>
 		</variables>
+		<variables name="ESCRITURAS_ETH_DONE_TE" typeName="BOOL"></variables>
 		<variables name="MANDO_TEMPORIZADO" typeName="BOOLARRAY400"></variables>
 		<variables name="EQUIPO2" typeName="BOOL"></variables>
 		<variables name="MATRIZ_SALIDAS_DIGITALES_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
 		<variables name="I" typeName="INT"></variables>
-		<variables name="M_R_MODO_EXPLOTACION" typeName="INT" topologicalAddress="%MW717"></variables>
+		<variables name="M_R_MODO_EXPLOTACION" typeName="INT" topologicalAddress="%MW717">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="IP_3_2" typeName="BYTE" topologicalAddress="%MW30">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0000_0001"></variableInit>
 		</variables>
+		<variables name="CONT_OK_ETH" typeName="INT"></variables>
 		<variables name="WTB38" typeName="WORD_TO_BIT_DFB"></variables>
-		<variables name="EQUIPO3" typeName="BOOL"></variables>
 		<variables name="CICLOS_EQ" typeName="INT"></variables>
 		<variables name="B_TRATA_EQUIPOS_PLC_2" typeName="INTARRAY40" topologicalAddress="%MW7540">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<instanceElementDesc name="[4]">
 				<value>10</value>
 			</instanceElementDesc>
@@ -2088,54 +2012,191 @@ END_IF;
 				<value>2</value>
 			</instanceElementDesc>
 		</variables>
-		<variables name="DIA_PLC" typeName="INT" topologicalAddress="%MW60"></variables>
-		<variables name="EQUIPO_10" typeName="INT">
-			<attribute name="IsConstant" value="-1"></attribute>
-			<variableInit value="-32256"></variableInit>
+		<variables name="DIA_PLC" typeName="INT" topologicalAddress="%MW60">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="IP_3_1" typeName="BYTE" topologicalAddress="%MW26">
+			<attribute name="TimeStampSource" value="0"></attribute>
+			<variableInit value="2#0000_0001"></variableInit>
+		</variables>
+		<variables name="FALLO_PUERTO_SERIE" typeName="BOOL" topologicalAddress="%I0.0.0.ERR">
+			<attribute name="TimeStampSource" value="0"></attribute>
 		</variables>
 		<variables name="ENLACE_COMUNIC_OK_WORD" typeName="WORD"></variables>
 		<variables name="DIGITAL_ANTES" typeName="ARRAY[1..32] OF INT"></variables>
 		<variables name="FBI_24_22" typeName="TOF"></variables>
 		<variables name="NOE2" typeName="BOOL"></variables>
 		<variables name="Param_gestion_READ_VAR" typeName="ARRAY[1..4] OF INT"></variables>
+		<variables name="ALGO_QUE_ENVIAR" typeName="BOOL"></variables>
 		<variables name="IP_NOE2_EQUIPO2" typeName="string[35]">
 			<variableInit value="0.2.0{192.1.5.81}"></variableInit>
 		</variables>
-		<variables name="HORAS_PLC" typeName="INT" topologicalAddress="%MW62"></variables>
+		<variables name="HORAS_PLC" typeName="INT" topologicalAddress="%MW62">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="BANDA_TRATAMIENTO_EQ" typeName="BoolArr32"></variables>
-		<variables name="IP_1" typeName="BYTE"></variables>
+		<variables name="APUNTE_SD" typeName="INT">
+			<variableInit value="3"></variableInit>
+		</variables>
 		<variables name="IP_2_1" typeName="BYTE" topologicalAddress="%MW27">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0000_0100"></variableInit>
 		</variables>
-		<variables name="ALGO_QUE_ENVIAR" typeName="BOOL"></variables>
 		<variables name="aux_2" typeName="REAL"></variables>
-		<variables name="CONT_MSTR_ERROR" typeName="INT"></variables>
-		<variables name="M_R_ESTADO_COMUNIC_ACTIVA" typeName="INT" topologicalAddress="%MW469"></variables>
+		<variables name="Lecturas_SACIS" typeName="ARRAY[1..100] OF Lecturas_Read_Var">
+			<comment>lectura de variables del sepam</comment>
+			<instanceElementDesc name="[1]">
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.1</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50514</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>20</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[2]">
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50536</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>8</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.1</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[3]">
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.1</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50780</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>10</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[5]">
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.2</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50514</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>20</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[6]">
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.2</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50536</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>8</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[4]">
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.1</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>51542</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>4</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[7]">
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.2</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>50780</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>10</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+			<instanceElementDesc name="[8]">
+				<instanceElementDesc name="Dir_inicial_terminal">
+					<value>51542</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Terminal">
+					<value>0.0.0.2</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Num_palabras">
+					<value>4</value>
+				</instanceElementDesc>
+				<instanceElementDesc name="Objeto">
+					<value>%MW</value>
+				</instanceElementDesc>
+			</instanceElementDesc>
+		</variables>
 		<variables name="ANALOGICAS_EQUIPO2_ANTERIOR" typeName="INTARRAY40"></variables>
 		<variables name="TEMP_PRIMER_CICLO_EQUIPOS" typeName="INT"></variables>
+		<variables name="IP_1" typeName="BYTE"></variables>
 		<variables name="REG_100_MSG" typeName="BOOL"></variables>
-		<variables name="BUF_AUX_SD" typeName="intarraycola"></variables>
-		<variables name="DIGITAL_CALCULADAS_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW88"></variables>
-		<variables name="SOCOMEC2_V12" typeName="REAL" topologicalAddress="%MW3100"></variables>
+		<variables name="M_R_ESTADO_COMUNIC_ACTIVA" typeName="INT" topologicalAddress="%MW469">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="DIGITAL_CALCULADAS_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW88">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="SOCOMEC2_V12" typeName="REAL" topologicalAddress="%MW3100">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="CONMUTAR_DE_VIA" typeName="BOOL"></variables>
 		<variables name="N_PLC" typeName="INT">
 			<variableInit value="1"></variableInit>
 		</variables>
-		<variables name="CONMUTAR_DE_VIA" typeName="BOOL"></variables>
 		<variables name="COMUNICACIONES_SP" typeName="ARRAY[0..64] OF INT"></variables>
-		<variables name="IP_4_1" typeName="BYTE" topologicalAddress="%MW25">
-			<variableInit value="2#1100_0000"></variableInit>
+		<variables name="BUF_AUX_SD" typeName="intarraycola"></variables>
+		<variables name="ANALOGICAS_EQUIPO2_ACTUAL" typeName="INTARRAY40" topologicalAddress="%MW6600">
+			<attribute name="TimeStampSource" value="0"></attribute>
 		</variables>
-		<variables name="ANALOGICAS_EQUIPO2_ACTUAL" typeName="INTARRAY40" topologicalAddress="%MW6600"></variables>
 		<variables name="TM1" typeName="INT"></variables>
 		<variables name="MATRIZ_ANALOGICAS_EQ_WORD" typeName="WORD"></variables>
 		<variables name="TEMP_TEST_ENLACE" typeName="INT">
 			<variableInit value="120"></variableInit>
 		</variables>
+		<variables name="DIGITAL_ACTUAL_WORD" typeName="WORDARRAY32"></variables>
 		<variables name="TIEMPO" typeName="INT"></variables>
-		<variables name="SOCOMEC2_V23" typeName="REAL" topologicalAddress="%MW3102"></variables>
-		<variables name="M_R_TEST_ENLACE_SGC_PDC" typeName="INT" topologicalAddress="%MW453"></variables>
+		<variables name="SOCOMEC2_V23" typeName="REAL" topologicalAddress="%MW3102">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="M_R_TEST_ENLACE_SGC_PDC" typeName="INT" topologicalAddress="%MW453">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="AUX_EDC_PC" typeName="ARRAY[1..40] OF BOOL"></variables>
-		<variables name="CAMBIOS_PAQ_LECTURA" typeName="INT" topologicalAddress="%MW71"></variables>
+		<variables name="CAMBIOS_PAQ_LECTURA" typeName="INT" topologicalAddress="%MW71">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="GESTION_COM" typeName="ARRAY[1..4] OF INT"></variables>
 		<variables name="PERDIDAS_EDC" typeName="INT"></variables>
 		<variables name="Numero_reintentos_READ_VAR" typeName="INT">
@@ -2144,17 +2205,25 @@ END_IF;
 		<variables name="DIR_ESCRITURA_SGC" typeName="UINT">
 			<variableInit value="462"></variableInit>
 		</variables>
-		<variables name="SOCOMEC1_IS" typeName="REAL" topologicalAddress="%MW3008"></variables>
-		<variables name="ESTADO_COMUNIC_ACTIVA" typeName="INT" topologicalAddress="%MW468"></variables>
+		<variables name="SOCOMEC1_IS" typeName="REAL" topologicalAddress="%MW3008">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="ESTADO_COMUNIC_ACTIVA" typeName="INT" topologicalAddress="%MW468">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="IP_NOE_EQUIPO0" typeName="string[35]">
 			<variableInit value="0.0.0{0.0.0.0}"></variableInit>
 		</variables>
 		<variables name="APUNTE_EDC" typeName="INT">
 			<variableInit value="2"></variableInit>
 		</variables>
-		<variables name="SOCOMEC1_V23" typeName="REAL" topologicalAddress="%MW3002"></variables>
+		<variables name="SOCOMEC1_V23" typeName="REAL" topologicalAddress="%MW3002">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="Indice_lectura_READ_VAR" typeName="INT"></variables>
 		<variables name="AUX_ED" typeName="BOOL"></variables>
+		<variables name="READ4X" typeName="GET4X"></variables>
+		<variables name="BUF_AUX_ED" typeName="intarraycola"></variables>
 		<variables name="MANDO_ED_SP_TEMPORIZ" typeName="INTARRAY400"></variables>
 		<variables name="EQUIPO0" typeName="BOOL"></variables>
 		<variables name="AUX_PRIMER_CICLOA" typeName="BoolArr32"></variables>
@@ -2164,42 +2233,54 @@ END_IF;
 		</variables>
 		<variables name="ed_vigilancia" typeName="CALCULADAS"></variables>
 		<variables name="IP_2_4" typeName="BYTE" topologicalAddress="%MW39">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0000_0101"></variableInit>
 		</variables>
 		<variables name="REG_10_MSG" typeName="BOOL"></variables>
 		<variables name="PALABRA_CAMBIOS" typeName="INT"></variables>
 		<variables name="CONT_ERROR_ETH" typeName="INT"></variables>
-		<variables name="SOCOMEC1_IR" typeName="REAL" topologicalAddress="%MW3006"></variables>
-		<variables name="ESTADO_EQUIPOS" typeName="BoolArr32"></variables>
-		<variables name="MODIFICA_ORDEN_PETICION_READVAR" typeName="BOOL"></variables>
+		<variables name="SOCOMEC1_IR" typeName="REAL" topologicalAddress="%MW3006">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="IP_1_4" typeName="BYTE" topologicalAddress="%MW40">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0101_1011"></variableInit>
 		</variables>
 		<variables name="MATRIZ_ANALOGICAS_EQ" typeName="INT"></variables>
 		<variables name="NUM_TARJETAS16_ED" typeName="INT"></variables>
-		<variables name="BUF_AUX_ED" typeName="intarraycola"></variables>
-		<variables name="SOCOMEC2_IT" typeName="REAL" topologicalAddress="%MW3110"></variables>
-		<variables name="ESCRITURAS_ETH_ERROR_EQ" typeName="BOOL"></variables>
-		<variables name="IP_NOE2_EQUIPO4" typeName="string[35]">
-			<variableInit value="0.2.0{192.1.5.91}"></variableInit>
+		<variables name="SOCOMEC2_IT" typeName="REAL" topologicalAddress="%MW3110">
+			<attribute name="TimeStampSource" value="0"></attribute>
 		</variables>
+		<variables name="IP_4_1" typeName="BYTE" topologicalAddress="%MW25">
+			<attribute name="TimeStampSource" value="0"></attribute>
+			<variableInit value="2#1100_0000"></variableInit>
+		</variables>
+		<variables name="ESCRITURAS_ETH_ERROR_EQ" typeName="BOOL"></variables>
+		<variables name="BORRA" typeName="INT"></variables>
 		<variables name="ESCRITURAS_ETH_SLAVEREG_EQ" typeName="WORD">
 			<variableInit value="16#0B54"></variableInit>
 		</variables>
 		<variables name="H" typeName="INT"></variables>
-		<variables name="B_T_EA_1_16_EQ" typeName="INT" topologicalAddress="%MW680"></variables>
-		<variables name="ANALOGICAS_EQUIPO2" typeName="INTARRAY40" topologicalAddress="%MW1040"></variables>
-		<variables name="AUX_P_C" typeName="BOOL"></variables>
-		<variables name="IP_4_2" typeName="BYTE" topologicalAddress="%MW29">
-			<variableInit value="2#1100_0000"></variableInit>
+		<variables name="IP_NOE2_EQUIPO4" typeName="string[35]">
+			<variableInit value="0.2.0{192.1.5.91}"></variableInit>
 		</variables>
+		<variables name="B_T_EA_1_16_EQ" typeName="INT" topologicalAddress="%MW680">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="ANALOGICAS_EQUIPO2" typeName="INTARRAY40" topologicalAddress="%MW1040">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="AUX_P_C" typeName="BOOL"></variables>
 		<variables name="Numero_lecturas_READ_VAR" typeName="INT">
 			<variableInit value="1"></variableInit>
 		</variables>
-		<variables name="SOCOMEC1_V12" typeName="REAL" topologicalAddress="%MW3000"></variables>
-		<variables name="READ4X" typeName="GET4X"></variables>
+		<variables name="SOCOMEC1_V12" typeName="REAL" topologicalAddress="%MW3000">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="M_E" typeName="BOOL"></variables>
 		<variables name="MATRIZ_DIGITAL_WORD" typeName="WORDARRAY32"></variables>
 		<variables name="B_TRATA_EQUIPOS_PLC_3" typeName="INTARRAY40" topologicalAddress="%MW7620">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<instanceElementDesc name="[1]">
 				<value>2</value>
 			</instanceElementDesc>
@@ -2326,29 +2407,40 @@ END_IF;
 			<attribute name="IsConstant" value="-1"></attribute>
 			<variableInit value="-32767"></variableInit>
 		</variables>
-		<variables name="BUF_SAL_TE" typeName="intarraycola" topologicalAddress="%MW6200"></variables>
-		<variables name="DIGITAL_ACTUAL_WORD" typeName="WORDARRAY32"></variables>
+		<variables name="BUF_SAL_TE" typeName="intarraycola" topologicalAddress="%MW6200">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="Contaje_INDEX_Read_Var" typeName="INT"></variables>
-		<variables name="BORRA" typeName="INT"></variables>
+		<variables name="MODIFICA_ORDEN_PETICION_READVAR" typeName="BOOL"></variables>
 		<variables name="EQUIPO1" typeName="BOOL"></variables>
 		<variables name="COMUNICACION" typeName="INT"></variables>
 		<variables name="PUNTERO" typeName="INT"></variables>
 		<variables name="GESTION_COM_EQ" typeName="ARRAY[1..4] OF INT"></variables>
+		<variables name="ESTADO_EQUIPOS" typeName="BoolArr32"></variables>
+		<variables name="IP_4_2" typeName="BYTE" topologicalAddress="%MW29">
+			<attribute name="TimeStampSource" value="0"></attribute>
+			<variableInit value="2#1100_0000"></variableInit>
+		</variables>
 		<variables name="TEMP_P_C" typeName="INT"></variables>
 		<variables name="DIGITAL_CALCULADAS_ACTUAL" typeName="ARRAY[1..64] OF INT"></variables>
-		<variables name="ESTADO_COMUNIC_ACTIVA_LECTURA" typeName="INT" topologicalAddress="%MW69"></variables>
 		<variables name="ANALOGICAS_CONTROL_EQUIPOS" typeName="WORD"></variables>
-		<variables name="aux_3" typeName="UINT"></variables>
-		<variables name="R_TRIG_10MSG" typeName="R_TRIG"></variables>
-		<variables name="M_E" typeName="BOOL"></variables>
-		<variables name="K" typeName="INT"></variables>
-		<variables name="R_TRIG_100MSG" typeName="R_TRIG"></variables>
-		<variables name="FE_OK" typeName="INT"></variables>
-		<variables name="M_R_BANDA_TRATAMIENTO_EQUIPOS" typeName="INT" topologicalAddress="%MW681"></variables>
 		<variables name="COLA_SACAR" typeName="INT">
 			<variableInit value="3"></variableInit>
 		</variables>
-		<variables name="DIGITAL_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW72"></variables>
+		<variables name="aux_3" typeName="UINT"></variables>
+		<variables name="R_TRIG_10MSG" typeName="R_TRIG"></variables>
+		<variables name="K" typeName="INT"></variables>
+		<variables name="R_TRIG_100MSG" typeName="R_TRIG"></variables>
+		<variables name="FE_OK" typeName="INT"></variables>
+		<variables name="ESTADO_COMUNIC_ACTIVA_LECTURA" typeName="INT" topologicalAddress="%MW69">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="M_R_BANDA_TRATAMIENTO_EQUIPOS" typeName="INT" topologicalAddress="%MW681">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="DIGITAL_LECTURA" typeName="ARRAY[1..64] OF INT" topologicalAddress="%MW72">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="EQUIPO_8" typeName="INT">
 			<attribute name="IsConstant" value="-1"></attribute>
 			<variableInit value="-32640"></variableInit>
@@ -2356,23 +2448,31 @@ END_IF;
 		<variables name="AUX_EQ" typeName="BOOL"></variables>
 		<variables name="ANALOGICAS_EQUIPO1_ANTERIOR" typeName="INTARRAY40"></variables>
 		<variables name="IP_4_4" typeName="BYTE" topologicalAddress="%MW37">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#1100_0000"></variableInit>
 		</variables>
 		<variables name="aux_1" typeName="REAL"></variables>
-		<variables name="B_TRATA_EQUIPOS_PLC_9" typeName="INTARRAY40" topologicalAddress="%MW7860"></variables>
-		<variables name="TM2" typeName="INT"></variables>
-		<variables name="SOCOMEC1_IT" typeName="REAL" topologicalAddress="%MW3010"></variables>
+		<variables name="ANALOGICAS_EQUIPOS_LECTURA" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="NUM_TARJETAS16_SD" typeName="INT"></variables>
+		<variables name="SOCOMEC1_IT" typeName="REAL" topologicalAddress="%MW3010">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="PERDIDAS_ED" typeName="INT"></variables>
-		<variables name="SOCOMEC2_P_TOTAL" typeName="REAL" topologicalAddress="%MW3124"></variables>
+		<variables name="SOCOMEC2_P_TOTAL" typeName="REAL" topologicalAddress="%MW3124">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="ESCRITURAS_ETH_NO_REG" typeName="WORD"></variables>
 		<variables name="B3" typeName="INT"></variables>
-		<variables name="ADDM1" typeName="string[35]"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_9" typeName="INTARRAY40" topologicalAddress="%MW7860">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="COLA_BORRAR" typeName="INT">
 			<variableInit value="1"></variableInit>
 		</variables>
-		<variables name="ESCRITURA_PDC_SGC_TE" typeName="WORD" topologicalAddress="%MW6200"></variables>
-		<variables name="APUNTE_ED" typeName="INT">
-			<variableInit value="1"></variableInit>
+		<variables name="IP_4" typeName="BYTE"></variables>
+		<variables name="TM2" typeName="INT"></variables>
+		<variables name="ESCRITURA_PDC_SGC_TE" typeName="WORD" topologicalAddress="%MW6200">
+			<attribute name="TimeStampSource" value="0"></attribute>
 		</variables>
 		<variables name="ESCRITURAS_ETH_NO_REG_TE" typeName="INT">
 			<variableInit value="1"></variableInit>
@@ -2380,58 +2480,75 @@ END_IF;
 		<variables name="ALGO_RECIBIDO" typeName="BOOL"></variables>
 		<variables name="B2" typeName="INT"></variables>
 		<variables name="NMANDO_1" typeName="INT"></variables>
-		<variables name="ESCRITURAS_ETH_ERROR_TE" typeName="BOOL"></variables>
 		<variables name="SALIDAS_DIGITALES_ACTUAL_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
-		<variables name="ANALOGICAS_EQUIPO1" typeName="INTARRAY40" topologicalAddress="%MW1000"></variables>
+		<variables name="SOCOMEC2_COSENO" typeName="REAL" topologicalAddress="%MW3130">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="H1" typeName="INT"></variables>
 		<variables name="CONTESTA_ETH_NO_OK" typeName="INT"></variables>
-		<variables name="M_R_TEST_ENLACE_PDC_SGC" typeName="INT" topologicalAddress="%MW452"></variables>
-		<variables name="NOE1" typeName="BOOL"></variables>
-		<variables name="AÑO_PLC" typeName="INT" topologicalAddress="%MW61"></variables>
+		<variables name="SOCOMEC2_IR" typeName="REAL" topologicalAddress="%MW3106">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="AUX_SD_PC" typeName="ARRAY[1..40] OF BOOL"></variables>
+		<variables name="AUX_EQUIPOS" typeName="INT">
+			<variableInit value="0"></variableInit>
+		</variables>
+		<variables name="AÑO_PLC" typeName="INT" topologicalAddress="%MW61">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="AUX_EDC" typeName="BOOL"></variables>
-		<variables name="IP_4_3" typeName="BYTE" topologicalAddress="%MW33">
-			<variableInit value="2#1100_0000"></variableInit>
-		</variables>
-		<variables name="EQUIPO_3" typeName="INT">
-			<attribute name="IsConstant" value="-1"></attribute>
-			<variableInit value="-32764"></variableInit>
-		</variables>
-		<variables name="DIGITAL_CALCULADAS_ANTES_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
 		<variables name="TEMP_SGC_PDC_INT" typeName="INT"></variables>
 		<variables name="ESCRITURAS_ETH_REQ_TE" typeName="BOOL"></variables>
-		<variables name="BUF_EQUIPOS" typeName="intarraycola" topologicalAddress="%MW4900"></variables>
 		<variables name="AUX_PDC" typeName="INT">
 			<variableInit value="-24576"></variableInit>
 		</variables>
+		<variables name="BUF_EQUIPOS" typeName="intarraycola" topologicalAddress="%MW4900">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="APUNTE_ED" typeName="INT">
+			<variableInit value="1"></variableInit>
+		</variables>
+		<variables name="ESCRITURAS_ETH_REQ" typeName="BOOL"></variables>
 		<variables name="COLA" typeName="COLA"></variables>
 		<variables name="GESTION_COM_TE" typeName="ARRAY[1..4] OF INT"></variables>
-		<variables name="NUM_TARJETAS16_SD" typeName="INT"></variables>
 		<variables name="ESCRITURAS_ETH_DATABUF" typeName="intarraycola"></variables>
 		<variables name="TEMP_PRIMER_CICLO" typeName="INT">
 			<variableInit value="200"></variableInit>
 		</variables>
-		<variables name="IP_4" typeName="BYTE"></variables>
+		<variables name="LECTURAS_SACIS_FB" typeName="LECTURAS_MB_READ_VAR_M340"></variables>
 		<variables name="IP_2_2" typeName="BYTE" topologicalAddress="%MW31">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<variableInit value="2#0000_0101"></variableInit>
 		</variables>
+		<variables name="ESCRITURAS_ETH_ERROR_TE" typeName="BOOL"></variables>
 		<variables name="WTB5" typeName="WORD_TO_BIT_DFB"></variables>
 		<variables name="SALIDAS_DIGITALES_ANTES" typeName="ARRAY[1..64] OF INT"></variables>
-		<variables name="DIA_SEMANA_PLC" typeName="INT" topologicalAddress="%MW58"></variables>
+		<variables name="DIA_SEMANA_PLC" typeName="INT" topologicalAddress="%MW58">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="TEMP_PDC_SGC_INT" typeName="INT">
 			<variableInit value="120"></variableInit>
 		</variables>
 		<variables name="COLA_INSERTAR" typeName="INT">
 			<variableInit value="2"></variableInit>
 		</variables>
-		<variables name="SOCOMEC2_COSENO" typeName="REAL" topologicalAddress="%MW3130"></variables>
-		<variables name="H1" typeName="INT"></variables>
-		<variables name="SOCOMEC2_IR" typeName="REAL" topologicalAddress="%MW3106"></variables>
-		<variables name="AUX_SD_PC" typeName="ARRAY[1..40] OF BOOL"></variables>
-		<variables name="AUX_EQUIPOS" typeName="INT">
-			<variableInit value="0"></variableInit>
+		<variables name="ANALOGICAS_EQUIPO1" typeName="INTARRAY40" topologicalAddress="%MW1000">
+			<attribute name="TimeStampSource" value="0"></attribute>
 		</variables>
-		<variables name="ESCRITURAS_ETH_REQ" typeName="BOOL"></variables>
+		<variables name="M_R_TEST_ENLACE_PDC_SGC" typeName="INT" topologicalAddress="%MW452">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
+		<variables name="IP_4_3" typeName="BYTE" topologicalAddress="%MW33">
+			<attribute name="TimeStampSource" value="0"></attribute>
+			<variableInit value="2#1100_0000"></variableInit>
+		</variables>
+		<variables name="NOE1" typeName="BOOL"></variables>
+		<variables name="ADDM1" typeName="string[35]"></variables>
+		<variables name="J" typeName="INT"></variables>
 		<variables name="COMUNICACIONES_PV" typeName="ARRAY[0..64] OF INT"></variables>
+		<variables name="DIGITAL_CALCULADAS_ANTES_WORD" typeName="ARRAY[1..128] OF WORD"></variables>
 		<variables name="B_TRATA_EQUIPOS_PLC_1" typeName="INTARRAY40" topologicalAddress="%MW7500">
+			<attribute name="TimeStampSource" value="0"></attribute>
 			<instanceElementDesc name="[1]">
 				<value>2</value>
 			</instanceElementDesc>
@@ -2558,26 +2675,33 @@ END_IF;
 			<variableInit value="TRUE"></variableInit>
 		</variables>
 		<variables name="M" typeName="INT"></variables>
-		<variables name="ANALOGICAS_EQUIPOS_LECTURA" typeName="ARRAY[1..64] OF INT"></variables>
-		<variables name="SOCOMEC2_V31" typeName="REAL" topologicalAddress="%MW3104"></variables>
+		<variables name="EQUIPO_3" typeName="INT">
+			<attribute name="IsConstant" value="-1"></attribute>
+			<variableInit value="-32764"></variableInit>
+		</variables>
+		<variables name="SOCOMEC2_V31" typeName="REAL" topologicalAddress="%MW3104">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="PRIMER_CICLO_DATOS_FISICOS_OK" typeName="BOOL"></variables>
-		<variables name="LECTURAS_SACIS_FB" typeName="LECTURAS_MB_READ_VAR_M340"></variables>
-		<variables name="REG_1_SG" typeName="BOOL"></variables>
-		<variables name="B_TRATA_EQUIPOS_PLC_6" typeName="INTARRAY40" topologicalAddress="%MW7740"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_6" typeName="INTARRAY40" topologicalAddress="%MW7740">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="EQUIPO_9" typeName="INT">
 			<attribute name="IsConstant" value="-1"></attribute>
 			<variableInit value="-32512"></variableInit>
 		</variables>
-		<variables name="SALIDAS_DIGITALES_ACTUAL" typeName="ARRAY[1..64] OF INT"></variables>
 		<variables name="PRIMER_CICLO" typeName="BOOL"></variables>
 		<variables name="ESCRITURAS_ETH_SLAVEREG" typeName="WORD">
 			<variableInit value="16#0AF0"></variableInit>
 		</variables>
 		<variables name="AUX_PC" typeName="BOOL"></variables>
 		<variables name="R_TRIG_SEG" typeName="R_TRIG"></variables>
-		<variables name="J" typeName="INT"></variables>
+		<variables name="SALIDAS_DIGITALES_ACTUAL" typeName="ARRAY[1..64] OF INT"></variables>
+		<variables name="REG_1_SG" typeName="BOOL"></variables>
 		<variables name="MATRIZ_DIGITAL" typeName="INTARRAY40"></variables>
-		<variables name="B_TRATA_EQUIPOS_PLC_8" typeName="INTARRAY40" topologicalAddress="%MW7820"></variables>
+		<variables name="B_TRATA_EQUIPOS_PLC_8" typeName="INTARRAY40" topologicalAddress="%MW7820">
+			<attribute name="TimeStampSource" value="0"></attribute>
+		</variables>
 		<variables name="TEST_ENLACE_PDC_SGC" typeName="INT"></variables>
 	</dataBlock>
 	<DDTSource DDTName="intarraycola" version="2.00" dateTime="dt#2009-02-11-10:02:17">
@@ -2589,7 +2713,7 @@ END_IF;
 		<array>ARRAY[1..40] OF INT</array>
 	</DDTSource>
 	<FBSource nameOfFBType="WORD_TO_BIT_DFB" version="2.00" dateTime="dt#2009-01-26-11:47:37">
-		<crypted>8805EC2008B76BC98E4E6580742A108DECD429E35EA2FFDC395DB24BF903DF497875025794C3ACCB73861565389B3EC1F57342A1114209A6292A9D8510C2D4821F9E9CFBA6F7FD7EC33FAB8D6A3C5B81CEBA9CD1338D7E58E44A4F17435A6282C8463E4CB446210A4922AEBAB31D5DA9C43BAB474199EF44466676DA92638E562BCA24E121E941FA5305351AE55D0C85113F35551C1CEB8ED75C3DB130ED0CD2FBF88783B8B914AEC4E40F61E9E210E3621DB39EEA65A4E351001D5809600E147831DE5A6DB00C4D7ACDB1F242D926BDAC9B2B598D40023CEA1674E02A24E2FC6785ACACA532016FCFFD4F440AD8F6D5768B058FC6BA5A4B52241617CDC5CECC709240FECBB78DC428F4F6D25C8BA053822D9468AA8DC909763C685F0B452B56B78F9F84A1DEE1B895476AD3D7B3C952229E2B8180AA08243735B42B461FE5B068FF912D3ED3BE97E9946F5A3647F6B8636CB22BEC7234A37BDB80FFC5894278C8877242724530693147C497ECDB576383569CD2A499E419455B01847059459846874077F4FBF86BE53DEB44F94277D7C567CDD39E323FDD37769C9088EE17612E66DB22B91E96D082DD8CC75A8C66A9843315F1EE1543DC764EE20ECE70981ECCA918DE09C826A8F5957A59A79DCB5D96A16443A451F32050633EA78B665EE4CDBD54383818B414F2A41134912683C9727E1CD0AC94BBD933B14B19C4020CB3072C6C2639EC3D489B21FFB90B5DB187BD06446827A3124B16848D796668ED3EA931DBAF0704FB66EFD8A73E93A9FBAA8617D2AB20752B0C7910473DBBD1BFDDA44CCB7158D2B530AA74DE88CA609D48D9217931068755AAFA449F61508E6C1BAEB14329EF04F7DBA2B019847D46206B19D3BCDAD6C923C87B1646C5D1576B8CD5A98571C440FA68D2E870BD19DEE16D87EF038A2CE5FE6563A3C8DFD4C7B028AAC23103B6478267F70F264B6CE89857498C508A5A08019E0F730E40073CF92DA0E5D73160C43712366CEF23C250749EC2EE6147D56E11F76333074AB0C6AF7AE6A987E24072341C1AE1D16DC65C613D0C675A9C668DD5C0ADAD169E9EC2FF46F8396043F0A40BC85168E81B5E7CF8F3E65C7AD2E0BBC555B95FBA425163F2EBBD6A477CA1056A0B122D48240690930F381FCAF66532305BD518F8D278ED04A2FB5621EA6D5B0BC2C96A39DD60F27A17FE7387DF73802F63E60D85F7B88F7448209A3100F130669FB21873BE691F9E4D97A3B7C254B8898D61FD7FD297DBE9C79963CB0009B600D859526F19874CFB5AF8E80C79CD757F867DE39291FDC2000C677B45BE937663F8686654A1DB49BA3B4C9769B4E4783C74231A2CDFE75C568A9B2526FD95F084132384EE02C8FE26AB62C37B9B2FA08E5E6D08911D7ADCB6778FB90A556CA069947C7F720BF4E139A1B2B1E7F5152548CD8C863FE02881150F40893A9B3408787359A55FEB6620B2F2ED04E606A9EFE6D7D82F20C45FD4AA05EAF2AB86AE7A590F8D0BAE60BE8432AC18327C6169F006CDCED4AC133387269D6DFA38967C9F170EA4A9F741FEF5C30870E032D8B05B6E1B19A902CF8CBCC3269F9D87662ABB059C3909E0C8F339C35CECC75EDD36C44DCCA7527BBBFF3822E89223D4A7BA771BAAFF786C4BA75EED3C55D52121491D7FEC43BD1C57E3F3B2A4013A91264F3CC5E666503E3F1DFD42778B4198D18BB6FD145AD0AAE9F8F39040CA1C047ED76C5FEAF82C6ECA8268A01456F8863EE57BA825FC7529AE5129277609B92FCFD17E81AC8B6C78BD69CBAE9A64933CB05D4B0EF9EF7BBA511134010F93D0BBB49E11AADA030B465903203C5559C6121E030A1FBDCF1870201C21CC90B6ECF8AE765ACEC0D4777B5DC8122009D1BF457868BC71C2171311AA9E9495500C59D7D5410A2AAE0CC9C411AFD3C1F92069C83A200A7F65F304DE6A88545A037FA34A6C446323CCF298B47C8E2E36E8CECF581B65171C928DD40E88955A19C139C04AFCAC5ED1BA767E3800056C80E486989C5DD02922FE2852E33711FAFDC9834DEDA08262220F1311BA1FCB255CE16AEC143A816B3ACEC34D5059E2A664EB33A3E2697E33B8BC982392512FC43D4EC4DCDA7AAE7B3CF1465AD8F2108193E106B1A9B4EDD1B0F621FD3A5CC673CD719CDA13DA216591E68ECFF91C4FE072CDC63F59CD2468B7E2D9A5B4491A8195770E81D6FFC6B24C5E7AE4522779DB2CEA1143DDFEF88FE9294F9D0A3DB3D35F70E0562FC96408AD3C345A2AA6CFDD4B592E90E7677A0136805019A800E6A9C339A0DFF739CB8CE1B0BB28A5F1108EBA900A6B41FFD08FE0040AEF420B099D65502212B3D7DEF7CEB546E4DF20E5863CD915142A58E2AB2AE546F114E12D4D830E58D722E72D1A64080B1D93B01002E9753DFD62DD4D7348472B409B7DF6945A9A8211E2AEA338DD035FD74873DF066A4FAD649AF446F43CFEFEBBBDA9105849BA2183F80DAA64752369B59C57A6CA0B2D56C0C446F6CC9C95C6CE971ABC0EA03E4D80A1B251D43FC589DEDCD203F41B3FC13C08D8E5EC4E01E95E1DCB29D929C9582FCB1C62BB288DB56F813DF104E0F6A768FA7AEB0C6A004DA19E1108D884B8BD9D53CD118079761FB235DEC1E16309149312F0FB02D94B4FBC0C3E191C9A913AF384C4DBE9AB277165ABA46CBD9B66D2A51049B2720EA11831DBBAA4A3B61B3B3BF93FAAAC7AC46F29F300DABD71F1F6EFC6B5EBAA2DDBD049E53E339A49FDE78A289D2155FA2BD3CA3D853A52091F141FEF1B04A7D77856461C0B56CECCEA9E6D04B0D45FAF69CBE864BE301B30C75A34304020C715A143495B6B3B955FD19CF90DB96C7DB02414EB27D178210423822F901E2818A4E3ABC2F24A0A0304DDF831E0C0919474DFF7A679FF4D1A54DE064770327FE04406C7C7D531DA0ADDBEA922CAC3C8498F7877936D58C33C76F9F39F82A21815157AB5161D04C55DCE9C053387173DE7C65642AE2BD727D3321119425F9F1A60C72424F2237B123D62CB0584F77EF2AB3AC66449302E6CBB278834E10869D0CF7BD41195E510E3DDFD88FA9A99160DC82E8A5E2E2E0D43A3D5F80FAADE9C8F4AADB6718D4F6EFC58D4D9B2D7502E10D705867CCEB1C329CEE105B19FBF3F3F0AA883A1227849AAE832C597CCBED32581D6F9127AE4EBE0D8834D2E069FAAC0386E013EEF2E78ABFFDBFE6F6B0282536AE245FED9D64773E8272DE37C6392EB486A8F56C283C24C2E1EC55E2C9A32CAFE1EC5757C9563E9192A5D9DA866C4D7D117291D59D2F3F9F43E8755581424D3679F85EF04695AABFDB1</crypted>
+		<crypted>8805EC2008B76BC8844267827F2D168FE7D020E3073F1C74DBCBD579F2F69CC196FF58A78789EB3BB05E365857B18B78411ACF63F53431B85F05A11A083CA1A2C86D8D508912CD4A70405F459AA31AAD5F0A7F2813F6195303CDC998B0556A4CE18B3172AFFF07258202C4A1CA1DEEE97AEFECF51BD2305C27D9B38909B28C77C34F4BB907558BF3BD26BEC44969523870D67E9A8A3B4ECED0E10952E65BEAE6E0FA700F30AD9F99EDD1D4A7C90A5DADAB4891AF74D8E8E522B4216CF2DF4DC935002D2F2141796B57315F451D2D9E2F23BBE05384B05DC9FFDBC898AB729193CED34585E830A347F244A6355BA538874813DECAE68840C94820942CBC9CE2307C1C69AFF53803111CF22CAFA0B155D7A65077130542B35E5FDBA7475AEBACEA0781475C21C4C43DB6190A83A6C17B093383B1C699EA5F3ED83146FA3CD88CBC5D01CB602E1100D1286A8489607417F889871F96134353DB270B3782CC636C1A68231AD4BED2E82C8827C9C9C59D709B30C2A9B78F08833A43F94A774D0B3C6CF2EB174B9CB0FF079BF0C13D2FE4CB9F04A34C9E45B3C0709B77CA1A6BA725CE0E87C011C5ADB1B6B4D90D11BCE837590F715112820F03D2211A345C5306F32D61BA57B254E7616E2827636D6C0E911DC873BF5CC3456F83BD0725C2A838211A54F511D25D4E3BFC12C6E05E2CEE9C75389DC98CE81347137A16B587584822508A841CD43F96B62035916408DA833D9A53BE8A384026C9FDA3BA62800E6D970EBE8038DF874DB1048AED0BA136707744BBB74FDB6A2E82C9E5756D0B13A7959E3F9379E35A89455B82283FCB145706833BB2A5C0502BE504EFB605971CA07556F2243DD3DD0A1D2686117C9F59210A801E730AF7084ABF12B51FB2371C349211352935F816E68CE2DD2DFE7859100F86F8BC3A8282B573556DF1F156106FDAB8C5781673B0B1F73B7FAA078A22455597832C6735DA318F2855DE8A6E52AE310DF5203C52C95832204DC03C237F415A570A753D09F1B6091A681F3927A53F57F2D25000B1228D92D4A68EB2D115E33E0B042F8B9812AD97C00B4E5BAD880C67572EA868F90026BC7A314F4932C23F17AF4640A8A3808FAC8BC036E8A6BA5F02FCDFDD9EF292693421A3664F29BBCFB58ABA6CFE259F3C8EB9283B54EDA4A5422025D635B0AC98608EFD913A374A6482E7FFA7404F97717FE9A3DD8EF50C46A78652050DBA9EC11FAB854C3B30EA4177DFAA555F5F645EC8951ECEE3BA6794575812FFC348CFAB8ED51B834F60545B37FE6B6DB22C6CF3D2C8756269D80007A8BAABC63AFEB3DED2E50270D5ABE25902753C1FB99838D4417148629107F36056FF9200328EAB7D98FD63C38520A13FA693DCE4B17817778AA8567BB0431597A1FD41D2418A6E7C3C8402360D598D907E443B089649E307D6C9EC8C7EC3F3B374C8D02903001728C64D74E21B19BE5AFE956BED7A42939310F710734DBE4138A7FD45BE654643D3564C6018ABA2BE476786F475C090BD1D92ADAF1418E0A5856055FD3B2FBCE6F2D7F255B6EE9F8AABFBF77A3DFBDA7687790DD9397CBE7FAAAB3E4B6666BA1D9EA16EE102E08E29C1F0B6E130FA0B722CD32EAB077E545EB9A954E6E1B353E8B08AC07DD0F93113FA1579F1C6A6B11C8F2365F045CE4D96E8C76D5D9E5FD01DEED0DDB20ACF391B0AD456F6BF3A5E168E9422ABBF29C82BA4C4F3F889DC34415368C092AB8596DDF5F50DE4D76549A8C9C5F5469DC7F39F758645054786EA01A77D8B6D2C31B6E71A225E1A9D3DA17496F94C038F4527FEEFB3CECC6F0312F78A6B5F1300FFB60B6936CF6E85F37EE5B166D3F6813C7359AAF8032D43FB0CC5756A7B3D35C71C64F3CD23064236D60F604ED116A053D671E5E612FA821E68B7FC3956B47DD8ABE7F189AAD84C7CA60705C36AFEBED252F0B218C91863F5218085D6AAB4787525514732B54A22F9A22FB68D0D1CE3A0F40E3042A315690B90D2E0AC28FCBDE59AA1246A3577754F8EA36ED523D644DFFD847C4286FDE474DE9C5402A2CE26A0BF59C3932547F96B6EE017D6439BF9CD184638F2058CECF8C5EA85A9F7BFD92290442B1BACBB1425B301C189DB5D2EBBA19A90D33775255FF13FB46D67CCB17CCD9FCA75F08A5075E8CB8D8BC5FE78D9555A578E1CDB9DAD86EEC70E16E3C6B87290800A230882CBE17E96BA5F2A1B57C514122669C26F7730D1A490301935C615BF5F8DEF0A7CF4ECFA71671A06BD6B04C4A2DDC1E719814DC7CBB62CD947A4C864E8DDC7C00FD353317A285979CA8AB51EA652EC4AB0E3A0A5F1B68335291A2DDC6E3FE48357C5B7106A21A0E4B30FEC0398936917639D52D9D4F4120E1A947B9899416C884804B1DEA70CB260743D72FCC2455787540628AE9B3DEB799E6F9B24F00483DBBE3EA607875534D1594322EF2D7F0C9DAFDBDAAFF662E541D88FD3900505E82CE00237E18D4B15CCBEDFFAA126628DBD69D7882667C4147168DF03C204A00F599C9FB9F6AAD5078A6583369E63ED2EACDB43CF60703D4B8285A1643D0A34EF0F09F076DC3B57D55F6DA0D67CAE2F671F9B32CF2B8D99113DA4BF77F8E973415916088D7A76EBA1EEB8881A7668C4E62ECC16C09378C71BBB553C759B2F1FB9F817055D86EEA5FACBB638A4BDF29ADEB10CAFCB7169057BE83EA7BE2C9BF12B694D5F60003640AF1A47A92C20E92EF729BE2FDFF0CAF674ACB626AB560FD404C0C483B2BE518EA5FD5C5244DB7B35AC4CD493A229E54254265A1330215ACDA5A57DA9FAF335377D31B4477FA1D3243DCF14AA2F7F0385FAE8EC3AB0D6D44EDA23F72372DEA99AC92A572209FA6B49AB2F20BD0884B2F442CBE21DB3D0DAE40385FC24171A36824E0571B085E87EEF175F837E8FBDC86847F65E587592D0F8A3E2540DB4EEFA2FB40F24FB498A6D08164CDAEEA5BF75EAD5F00D23E8E2B85EBBCE6CC90DD29E0C8C014693FC16ECBCFF0AED381AFE003AD62368D4DD62CF15D760FC1DFCE7082A74BD3EE4108C0B97E01D1A2630F9D76053B7E610F46D0659B430F96024880637E04A4504997E20A3B532B4E896CE44144F1F3D2CE807AD36045A847F0216CFEF059DFA9BA86883586B70642DFB1718F508D03C7E5A57B1B5C580BE05D0BB0DADA4B31CFF21B1868591A91D61F2BFADDE4C4E29D56738CC2D3DD7B58DE41247AD0B89EE746DB22A4F5FB6F6A5FE15882693CB6FCABE2045815AABFA1BE750A925DB1184C172771F2C0E27356CCD8371BEA8149C1DCFE23D2AF5BA1FCFF6F8B2F596DEDDB25CDBBB0A</crypted>
 		<attribute name="TypeCodeCheckSumString" value="F944"></attribute>
 		<attribute name="TypeSignatureCheckSumString" value="9603"></attribute>
 		<ExternalToolsOnly>
@@ -2658,6 +2782,10 @@ END_IF;
 		<attribute name="TypeSignatureCheckSumString" value="FE2B"></attribute>
 		<array>ARRAY[0..400] OF INT</array>
 	</DDTSource>
+	<DDTSource DDTName="BOOLARRAY400" version="2.00" dateTime="dt#2002-11-30-12:00:00">
+		<attribute name="TypeSignatureCheckSumString" value="659D"></attribute>
+		<array>ARRAY[1..400] OF BOOL</array>
+	</DDTSource>
 	<DDTSource DDTName="CALCULADAS" version="2.00" dateTime="dt#2002-11-30-12:00:00">
 		<attribute name="TypeSignatureCheckSumString" value="9580"></attribute>
 		<array>ARRAY[1..320] OF BOOL</array>
@@ -2667,7 +2795,7 @@ END_IF;
 		<array>ARRAY[1..32] OF BOOL</array>
 	</DDTSource>
 	<FBSource nameOfFBType="PUT4X" version="2.00" dateTime="dt#2009-01-26-11:47:39">
-		<crypted>8805EC2008B76BC98E4E6580742A108BECD429EC3F0E9A2D19FED2A8AFF19CB281B8DBDDEFD91D8CAE0491A18F5C00A2861D2A5A77264B3B7AD745A911CCB4B70536EEABD08C0C4DDB89D8D9A2508B7A37D2293C56B6AE3BF1A71B4BAD47D7B9A770AE60142DEEA3D74BC183B6464A4D50F7834EF8D58B490F6F5E8E10C8946A3BB515BD70B1B3BDF855A9FB3F080B1009BE4180D78BC01BBD2EB3FCE2B5BE6B7978A32192FE254D05EF3DCF417716A647BC390FED221A3BB7C443818D78EC740F24E14EAE10EDE572BC94354828E35BF14126933BD366C2BE0350AC15497C2AA7FE91DEB1C5B3C44A3028F3218B5055670B0485296F22CA4A68DB6524EBA787F78C2EFEE0635DF470E57DD0B7F0CFE3BA3EBC37D1C0C3A0FD95C91B3E276E26A83D5EEEAA562652A30F8737561D6FAA6FEEAD103D549FD2D8100EE5D2AE1134B09BFA055DC78E6F19F557EC38270F1AE0DEABDCB428676DA068BB08DC6616FB80D17C416E527F99F9CFF3A2C06CA1BEDEE72BDEA3C7D8B14A858DAECAC86FC0A563EBCEEB89688336B5DF1A2A6FDE0BE8A90B1FD0676A1F049FEEA6A4BEE5722C3B993DEE42D586AA185D91ACE4C1626F5A7989444138C3C53FCD8714B0B483A048C1B552246115858B461F6BE563823A597EAEAF0966F91F5622818B152AC876592E698688F836BA64F72035BD87B99B4A5FBD88A38975A9B6057C1F7CCFC82FDF3CA4DBEB99A78CEE4925242F5042F795F69521C9B273D6E0EC85E442FD2474C1EB71DAD8FAA258988E13ACBF005E0C165A3EB8EBD164F4819210BA2807FF3EEB5E4A26DF0EEADA149FCCD4300263702B16DDFE36B109AF754C36FE0A16E79CF516CDCE4BAAEAF250A2F035B0A12BB0BE9D34829B94F0EBBF4F09528174EDEF911DEAE612B204A67F2ED141B959B85CA2615C89BC6C2B4EB0E8AF5ABDF9A41E81EA0277EF35A60FD036218D93EA6CFAED70508C630AE9DB612CFCD0851B5098E3676C1AD61E55702580C9700791832AB14ADCDA4325CBEC8316E5DEA36DD864884F3E9814DC6FC0126ECC796C5DF9D32A954332239F98569600F75517D5855786DDBABDA50BED6068E65F6ACBF059D9009C7DA4811FEC503234465EF1B4098EA68E029A3B8A37877EABB79E68E53E80618B4F5E32EE67BCB6501630B47ABD0CFC9BCFBA8D99596E8C2EE833CF0E859C7BEEFA12DB5BDD8829D1E9A2FEC264F0F8E7FA4F2EC0DEF1046A7B7628BB1F344676FBAE04CD266BEF69C14FD2869D6B4206A491D821B0B540FD55BA82FDF181306C62DF774D0363127B7825C174B643C61634E160A035738A48B929051DB4E857052C130BF84D8F36F3035D296140CC69804FBA14A0B7169B170EE7E19C67773303D8C04DB6ACDDDB62E4C3B477C911A763EF573CDBF4ED282D720C9025EAF7DD85E27A458FA831231E479B368D04245C019D845544F7F5094C76A9F96CFB4AFF22205DE5704B1936EC8210524C146F68D458FB695CE7B6D0634CEDDEF46F2B526CF191E914564D0ED25AE77233DE77965D7F0F3B67EF890FBEF2656727967AA96CA9E39D4A72396C5A8CA269142108226E066B1BFD3261DE50860000841C535DD6D23E351E1F6C31F2514C19D28EB8599C2661111BC0A72DE2114130AAA1BDA4400FD0DDE9D171F811FBE8C873914D61C0371C32080818B4BB25562ABD43A0905B4D3B565B63674D5F500E0E6D0489937C3BE23A</crypted>
+		<crypted>8805EC2008B76BC8844267827F2D168FE7D020E3073F1C74DBCBD579F2F69CC196FF58A78789EB3BB05E365857B18B78411ACF63F53431B85F05A11A083CA1A2C86D8D508912CD4A70405F459AA31AAD5F0A7F2813F6195303CDC998B0556A4CE18B3172AFFF07258202C4A1CA1DEEE97AEFECF51BD2305C27D9B38909B28C77C34F4BB907558BF3BD26BEC44969523870D67E9A8A3B4ECED0E10952E65BEAE6E0FA700F30AD9F99EDD1D4A7C90A5DADAB4891AF74D8E8E522B4216CF2DF4DC935002D2F2141796B57315F451D2D9E2F23BBE05384B05DC9FFDBC898AB729193CED34585E830A347F244A6355BA538874813DECAE68640C94820942CBC9CE2307C1C69AFF53803111CF22CAFA0B155D7A65077130542B35E5FDBA7475AEBACEA0781475C21C4C43DB61D7281A3C17B093383B1C699EA5F3ED83146FA3CD88CBC5D01CB602E1100D1286A8489607417F889871F96134353DB270B3782CC636C1A68231AD4BED3EC5AF927C9C9C59D709B30C2A9B78F08833A43F94A774D0B3C6CF2EB174B9CB0FF079BF0C13D2FE4D18567C073C515A2F761935C965559D555DF65F7A8528FE5A2ABA2DE1016E9F23314042D1E27D05E3AC93B1C2E655506816479F91BB150B6363A372A6E736C46CC40D773AF59C7543DDAE15077C4BC3E181A44F819C4094528E249C7AD6216BCC975118CDEA3E41B564B2A2CC5EF0C176C589F9202D82EC3AC24789A3847FDF74BFA1EED9735592CE9CCA7B17D823A43B437F983268AD116FD51C7EE1EB67F7F7445BBF953B72A3485CDF96E533A08A8DADB3D9767E501881718C97160835E6D089233BF91CD4731BA5AF5B204D143FE5F71D1763CD5C20E4D24AA3945CB46230E8B077827FF154EEE12C96CBB397A59C105333E22B11AF1AAE88A30A2370E190FF6F9AD109987AF706B77A2F145502C88F1CE204036FDECA241129858C40D6275B98A303A628C39933240DD886844C03E01FD782315F872147B0D85173F617B204E45307452C39C083727443864811E71C4847D56F4638797D0B7DAFFEF14F13B2F042EABBD16A1D092400D07FACD542B2162C86BE74931B17B3D0C0B29CE285DFB0D03E2E8C185A587D47EF2FAF50C1DE0A1FBA8ABE0263331A76A6E26F6DAE7DBA01E9358892092A8333C7FB9E4E104672A8668B9ACD621ACFB92272A4C65AAF1D4E90717847352FAB285DEFC0C4BA786141D1CBD83F61CB5895E6760F9006CD8BD52414E721AF69D1D96FCFE44B1700912FFD15ECDA3A1D8268700237B710CD73B6EAC0856A58F9F2B7E73CD551D9FB6BC9279CCB0C89BF80569DE89FF5244052310E8CF3B880F370F6F8F5DB3645AEC97313190AF63C3B570D0CA6B8F1B8CD48FA1B97F1F71C3E36257B41745D6B8E145D27DD6216A75C72312603A91922B4B3F099076E000CBCDAE8E7A8EFFE020FDCD2E0F102E2EC6203FEA5855BB5EB0C068BF2A19D0D07EAA4D6441A95C3CB7AC0284155815D742436419B3AEBB025986EB7190D78B31B4A6AF5D02BBFADE125BE52A62EBD0EBF9CC1EE9B0929BFFE0F06E2DFDCB338D4809D2397C8871B5B12F00296E85069DE222C702FE9A2199A6E4B122E67213159073FC5A335C5EB9F41AF9F0B553E6BCA0E34CCEAB7F38D96A19DFE091ED00937872E554F74389E6BC0D5BEF2CB37992A8EFA90BCF331C419C1C90930B411CD4C413A9F27C9321B9D3D3E5829A2A3A38</crypted>
 		<attribute name="TypeCodeCheckSumString" value="BA61"></attribute>
 		<attribute name="TypeSignatureCheckSumString" value="82FB"></attribute>
 		<ExternalToolsOnly>
@@ -2681,10 +2809,6 @@ END_IF;
 			</inputParameters>
 		</ExternalToolsOnly>
 	</FBSource>
-	<DDTSource DDTName="BOOLARRAY400" version="2.00" dateTime="dt#2002-11-30-12:00:00">
-		<attribute name="TypeSignatureCheckSumString" value="659D"></attribute>
-		<array>ARRAY[1..400] OF BOOL</array>
-	</DDTSource>
 	<DDTSource DDTName="Lecturas_Read_Var" version="0.01" dateTime="dt#2009-05-27-11:48:18">
 		<attribute name="TypeSignatureCheckSumString" value="01B8"></attribute>
 		<structure>
@@ -2711,7 +2835,7 @@ END_IF;
 		</structure>
 	</DDTSource>
 	<FBSource nameOfFBType="GET4X" version="2.00" dateTime="dt#2009-01-26-11:47:39">
-		<crypted>8805EC2008B76BC98E4E6580742A108BECD429EC3F0E9A2D19FED2A8AFF19CB281B8DBDDEFD91D8CAE0491A18F5C00A2861D2A5A77264B3B7AD745A911CCB4B70536EEABD08C0C4DDB89D8D9A2508B7A37D2293C56B6AE3BF1A71B4BAD47D7B9A770AE60142DEEA3D74BC183B6464A4D50F7834EF8D58B490F6F5E8E10C8946A3BB515BD70B1B3BDF855A9FB3F080B1009BE4180D78BC01BBD2EB3FCE2B5BE6B7978A32192FE254D05EF3DCF417716A647BC390FED221A3BB7C443818D78EC740F24E14EAE10EDE572BC94354828E35BF14126933BD366C2BE0350AC15497C2AA7FE91DEB1C5B3C44A3028F3218B5055670B0485296F22CA4A68DB6524EBA787F78C2EFEE0635DF470E57DD0B7F0CFE3BA3EBC37D1C0C3A0FD95C91B3E276E26A83D5EEEAA562652A30CF044561D6FAA6FEEAD103D549FD2D8100EE5D2AE1134B09BFA055DC78E6F19F557EC38270F1AE0DEABDCB428676DA068BB08DC6616FB80D17C416E5F7D9BF9CFF3A2C06CA1BEDEE72BDEA3C7D8B14A858DAECAC86FC0A563EBCEEB89688336B5DF1A2A6FC4118BCA344480765D0E0CB4B2E994CA8973474BF17EA40AC69BBC1F4096F9FEC52F640636BC161001D8DF39D7BE12B0C6CAB80B8DB6567536429A864B016BAD3EDF25596EABAB1834A0430170879F1313C86654267FD283EB28E165BA1C0FEFD2B9B25B489284AB982DF98C75144B2381C03AC922A8CABE83A3C1E5156A0E472630B892E6912DE8BD4EDAB3ECECDC77B36F2D9DBD318A9EA6EB038BCF0FA4B3070F4B350B71FEF6D67BEFA5AB1FEA691CFB26FB49043AD15CB78D5ED1CED00E0461732B25CFB263FF04B6644F6CB46631D7ADEA1CDED958B4F4A041BDFC7EF3A53C95BF9D3C9EAC99A0BCE26B2773A134A6A1B43A9AFA1F8719B061339D12E01EA510896C77A091400172AFF4A02ADD83CB1F91EC167DBD30821FFB7F6EF6F79A1AB4A27D59EF6508EFC26E31A297F84C1FC3E22B6C1DC2034E79069DE82064E3BD4AD352CAC94D4BC3EF955FA6E0955CC931BD0823DB1CDD63EB1F64FD23751389CE3DAB531120978F56967790212D8F981BE981FCBFAD13F76A24A8496FFFED5FAA57C93DE19B47A70778601E1282F8788FEB8A09A6279C7CD360ADBDCA70B76FE07E89160F79A97FA7F82B1E30BB74F041A8F7C4AC978E4268927AF133D210FEFC6ABBA057C875C8A57181E5B4FED366A5F2F2FC580AC8DCEC0C6779554E9051275B61EC8A06E92A77EF698510829C963917149D82C729BD874DEA14BE89FFF181792B43C13C0C007D1D746423D000F757C0053BEC69D03D6F9D40AE29050BD9A37C762C5A54A8578464A611643A7E48C15B8D58FB10ABB5169B5E49CCF7B32B6A7403DFC95DA7E78BD85DF7DCB476FC04B070BF103BCAE7B361401B748E6CE1E1CE94D76F5E90AC032E09069F3D8F04241546B09A1E05F4EB00586EAAE93A8D4DE2392C5EE5450A0239F78216435B4D1D48F447F96A5BEDA0D63505FDD4D663385F51F597ED0B0E1B02CE45EA0941FE20CD1336141872ED951A8AFF722E2F9A60A93EB4E88F7F6923341CBAAA6B5A664C63641A7C54BC385ECD4F860135910B400D91E315080112044C9117090FD79AB44A9C26781A0DE79772B35B73139ADEF3A45610CCCEF8833BE803E7F9D15CA37D3693761C360E654BEE8F007156ED0385B935037B5F4C767D1C11142B3E504AC1D95E47AB63815239DA532062D2F5411C97BB67E1C97818FE75331BF90C4CE0AB55C046</crypted>
+		<crypted>8805EC2008B76BC8844267827F2D168CE7D020EC3D5A5AE5AF9446E30539B04187A2FD46F7A9DD3E838CAB02DC11996175BDDA26DF619A2C5A410974C1A0BACF7CBC6C488822813E8BB7234056E667631EC3C42F353B5BA107E8657D36685D25AF4F57D8A67B15F8861EB581980155B3D2ACECE3E959B2DBCFC8D6988E0ADF3DCC9F600CA8C8539905D8CD58E0706B753E2EF6B3E1053395F89A64B77743F308931DE76801B5442F43BD02B67F8DDB8BA83D06E79D201EDB53905E315967C5EFF41689F290B34A63C240D44982A8042BCAD98A9312B85509A6C4EF13F9A7E65E211464225156273B37345697248D84B20207708E1B825EB1DD69A9CBE162E943AD61B33A20830AB4B5768C4205B4B6F00E516BED6707AC6A4FA6BCE1EFEC00BA64C5E0DAEF40B1E8DE13840C191D53FF7DAB24A7DE9F38566E7D63FD369A528D24942F8EBE2D577B913E3AA5E5B6A859C06CC4851A9BF28A1AB0216D50D1752945EC1DF8D3CE42615A8188FB9F0F82690645FF9347C6F13C8AE6FE6126C529308F14B5E575A33F9BFC3085ED19ED0AFA40989223FD0231DDB3CBABF090AC841A3FF053447337CECEF882519A7DAC231F5BD7DAFECD869B959024D5248044A10D20987E9010B9CB896121BFC2A664CB93A4C95D8AFDA1731719F51134D36B5B90644D7A163067089BD4BBDDBB4918787CD46A1EBD222173185ED71E81DF9B6EB444752034C6A2D50E20624999DE0585FBD189625A0A4E65C9C46D5B99C64F663B9FBF94662048ECFD0AD85E87A356DC0980513248934D80363661FC02DA29AE79F596D4D084DAE97C40BF97A1EF111C437CA69F2643CEB54A71C291345DDA3914132F9F054DECD1BFB805022354C93BAE10345370473FFA7CC3FF1182A02EA61E6E3BE85DDABE042B38D48B8C6FB9DB4EAA5298B2B6DAFDB4FAFDF2DEB8CCB02CB12323BC8BE4253155833959B1576AD11D9F7C57CBB77F3A0E516234A1E1BA02B75E66E3786D27F8F43884996AF6953AF4B78FBE57094B8EAB789CF0591AD610BE026A0F8CEC82509F5DB940078006B279863E4F66ACCF79C0F253907F22C7962636098A3E75DC8C126D00B4FCC96C2616504E1564A361CC245004BA62BC98ECAF0C70C7B91866009A7D94D94E33F6EDE7413FF0637B6B47DA916DE9B3DF68C458E1F02C90E884FAA347C8714EE37484973BCE863266B68E18B260C995AB9E9BECF5D00131044F5A0642E63E202A82D2672E64FBA386050373A8C6204051BF03C7AC56275D46DF74B54E71BBF9BD1FFDDFB3BECAEAB4AF6C95DF429BCACA081BDF516401326DCAFE6E6C9E6DDDA0B5AD510163095E8C1C8CAD573B7E9B5DD7D3829CFE201DC634500881A7BD1BB09A72957A7FE97A2893D27B68C14CA1E0DDB846EF5C4D127ADD08422645688C9D9CAEE9721DE31631E11E08C3819597B8D39940D70DD502988FD4E47147933F0AEF0BFB3F3EA6AAC7D47C3A87815D8075537F3BA489985E4E1168C463B34A83E8D5D1613648DD1AA6AD35CE00E2C08FBF0118CFCD69F56E323120FAAB908296CBE033F84D466E43403F3874EBB834EB4463D6B006FA533C5050CEC43E29688593F0B06807689F03738FFF3F0CB7980EC8740F1DEEB0169141C76FE07A07D9DFF08F1AE330C566B243E89E1DBA7C4FAFE449ADF96177315118667A9D0BDC365F03E1956DB1F467CE35775D35865ADB2880082296C3759CA992D9D0B9CBB0C028F0237020674A472C698C4EE7E76282F3942818A7F9B2EC</crypted>
 		<attribute name="TypeCodeCheckSumString" value="A6E1"></attribute>
 		<attribute name="TypeSignatureCheckSumString" value="50DB"></attribute>
 		<ExternalToolsOnly>
@@ -2728,7 +2852,7 @@ END_IF;
 		</ExternalToolsOnly>
 	</FBSource>
 	<FBSource nameOfFBType="COLA" version="2.05" dateTime="dt#2009-04-07-13:00:51">
-		<crypted>8805EC2008B76BC98E4E6580742A1088ECD429ED24463694A701F6E74294A7D965C1A7702D120A72D3660F4BC0F5135F50C8C4D42302CEBCB296D91D6D78C33A33C0D01692C0E9C14BDA4460960656F91B144FA0DD41DAE2FEA305491835CDA2D47B5E001192885DCC8DD996B85F13453F462FA7926BE9B45E40CF7CEF8A491ACC22A03639FB624358E7C5492385330B28A95D48A7053E8822C45CC995C2416F9FF4508AAE3F4FA42ADCD09816095F97E8BFE8CC60DE40D44640AEF7E901F408F80E9B78BEBFF71492923AEB28CDAE4417E13B1ABC020AD3B9233C8CC0F13C34781B354E8C0DD803D158479800FA0A8456E966E4E2B0B05F2ADBC6B7B044C7A6F0486DF8CC6B0E1D1463AFFD13A6FC94581D12A33266EE53BFC73C0E2BD3E5ED453D5A137306F86DCF3814BD479A2E8DBC6BB0E896ED71C5E068779CD6125457511AA47A29CF0E6DB9FEC40C8F36E11231BD8722C0CC9536C4086F41CD4BFB64654485C21ABE8D61791F99099F1313AE5EC7A1955454718AF630BDBBFE3844DE748CE2A63D72B4B405FC93DA6B7A25B02CA3360AD1E53A89F0EF7240C8100362C74897AE0643DE4D03E6024F7D2A9742797A7FB9D0781406FE0E10CC4BA7EBE7001A8E1B7E0758CBE73BB1BE6B1F4B12DEC98E9E80DF7703AE417E7ECFECFB42ABAE30D4BA1491E384ED2C105AEBC410DB6318BAD2A76660D0A456FA43E491F66AA9A42BEBB5E0DDE17C57E05742BC560B766B249C85E2E230FF7AD7AFD2068B79E82F417C66FA68AA7DDBBD1C9BE51175388B669270AC09746D30986DAA479D8CD45781912ED9E7F0C56B6405E7ECF74C893EE6BD594346FF0F4FE1DC15F40455683B327860FE563DEFB6B187E9F3E56C615D7D85C5080E825D10FE98BF066BCAE81655090A7298C53881B75E2809E3E56D589B79D924676DB0B239232E2DA09411518F90E99025F3AE37EB0B7819BE14E0F7985A609FCC2C46277D64A1A3411A4C7BA1B09472DAE0EC2787608585851DDD84248BAFDEF67216278EFBC746CD9D3AF878DEEC7DC862A2C66968362C8F5EC393B61863A2AD04042FEB1964487B30CA236A287789B7C5C36F0D401A125F2F72E0CCEDC961B190571B8A12146F77F2CF7ED0EE0C15A2416C60C78633A81EDA07FBA17E9E1D5B0A6F8D60EA42FD6360F98C81D8920AF103BEA6D47D1A2B8B002260E50A405926E4CA2C1E8D3FA19484BA258961C7329A8EE62BBE9FB042634B9D760A171EDC958EC3FA70A43D1009930084775BD4367DB3B402DE8D4ED1DF36D099B8325AE481D5D3010889D08C4FB28BC1386E62817617015F6DF49F3A8359BEF4EB29B316EE3031721BDE65B200451E1C7F9A44728C6EC81AAD13622EAAF794170F4B9CC4F0B9B217B6331145C9488C32293183986E5A61D13CC0FB0C63982481DBCCF9C0A2D390E88377ADB97A46D03FA74FE0783049F3754177F66586DBC5A38561B6307CDF76D2B96DC3D07D0E93DDA9A65A00010A0C5CE9BD5A9CCA3E434F16FE232610FBF85F6E45716DB690E2308CECF78979DF56981BD29F30F06188178177ACC24808FD5633CD1867294CF4EEA0ECDCF3844E57CC336819CC7DBD19AFF0ED67489632379CABE194A1FD09BE6844C2762AA8D144A68AE6A3F851758A13D5FD53619A483F5B7A57FFBD6C4709A9E8C6F207632743B1A0B8EE08C4EABB6CF73E5DC74158162417D6702EA2C2CA8B38330888F66CC3F316C1D7370AE1B027B5D6F9F30F9BB05F63B6F9D0CC4216EA6B031FADF5063CF53B2BF967180E3AABB589FBAFE66A5CEF09EFDA1009AE091DD80BFEBE8703C36378B3A0489E7ACF815842FF6602A5883785DC09EDCEB090019CEC180852A4288A45F1D05D8FD56D3DA1FBE0213B08AF308DBA333CBC9599E973ECDA13532A22502B87F233F7AD52C5FEBA0C18ED6BA660D0A11BA1AB59971269B556FC22218E3BEB657CB1D926C5E15075FA2A6DC416262619F7EED559480FB3B697A869DF48AB1A66C3C81154C562984F1DE79873085D7E703FF3B1971BCF24D936C82734D35AD6E555AF21E3E4BA0D8AEB6F9F05309954DC2D270B8BC5411D09097A415339624FD951A47F77C9BB8201DF53BDB00D8B73429F30322787E12B2C3F7D6DBF7D831D736399C4F8638560896DE43588AB0F1A70E8C8BFA92656ADBC971778639BB541B8E702F3326C0CEFA94DEFE7AD6268A6739963B4CD105ADDB63FAA9A9447305F3583127EEE5D9FD5B9C12E844F7A74980B96DD1FC56F015447D6761FD1ADA1CE5A579735057EEB8A91E5348D33B8D0E9AC59316450EF0B91BC787D5B2E6D38CB1CB02C68F9B38E7FF87CC9A8B470DE607F49B3209202CECE77B226DC36AB814E9C63A8D833378017334178EBD60E0D4656E9813BE9908AE14B2CE0625435B08F35E0EF34E90F80BB0622619DE5D992EC4E596E8CCE3D1E8BE37A1CEF3CCCE14CDB61C7FA62AFEC83C46224BF07C3B87431619CF5BF697557AB05D6BD632B1DE8D0CC412E78FABC15536F8C31DB8BD4ECB6CF709095318027004340426A59B28F2ACA88D6B8EB44DCD6E9D74D89BF902F157F806C0DA053C220F391D47B736AB6B7FC75B60EDAB635F6619C869D9B02DA46DA79DDBA7F12383604A7B19092922FD5913F7566EC0B2AF2DAACDF6025FA3F28076D5F5108E29BCC329BA68606844E2789A784A0CD0C834D774FC52B6273445F551F3AAD5344F980A3CC693F659B0B1197F1A3359B8E209D6DF60CF5ADC823F1B66A1BFF5A97A67995199B0D8F4C8542188102CA3F6ED0DA3989FADDF897A23E361018F3CE8FA718376F952F2AD1011FA8D54F4694D2F2EF7A840766433F50D72A85F8F9D1FEABEE5D0743DD3F99F63FEE89E04E6B13E4D974B6DC71C2DFAC7F8C71CE417E21E885582C6EC730D1418486759401307AFC45EFA9419710EC3297D10F188CA67A349C012B4470C5F1502C0BC90D34E0081F7811327C0EBFA11A0082902210B8977F633B700018ECADB6F3FC55668735D2F8054A158BC75D3CE2167ABD5CD873D1E9BB534EE3A62FC1B3B3F729798B78087A08E31800D459EC23F3945297E08765CEC455010EE5C99AEF3F64D9EC5176E166DD139F58788691E11B07B4C98B52A7E639D0930AE39DE1A09D6D83073ACF7BBA32B74D023C40763E93344E5F91DAE759ADBA1A2AC1A17E7BF70BEFA41818A505E4F9ABA2C0BA181D50400CDB95CBC2C8B0978BFE35058FA36B2B31A9ECBA6E559B0AFCFB433D7F5522CDA580F3572EDAD5958E2EE1B7AFE0D06B8449A135F9E2CEBFB92B51227C1FA3EBFA75AFB956A9CA4DBFAEE9B9A8CBC55E0393F01824418BFB59396778DE75AE99D65941A8EA82553C859C95F8C8F82E7587D02F2220F7CD6DC50EDC86A411F0F4BF0F68B26942CBC8772256B74CBA11FEBDD87BCF0EB6911853F3E0D09324787DF88927F8CEC9AEEEA900DB4008207B70D02F7E7908B65B729E98EE06FA25C2680834A2DF8D97652D00188C5BDB1DAC049F9C98A02A67641DBFE4C2C451329FBB81AF06BD981FD0B2D47156A3C387EF535C1639AC54C20FEF352688389A9273032736E6114D835C5A320C4D8DF2946C30438FEE4EF5F1DA0C5005383D74749CF7807D0EDFB3D261C78650A7B5CE190AA8DC73DBDECDE0EB1F39EF8D40C7B071506C902E659CFCCE4E6893A420119C86142194B9DB184A5D90389A8F0304E6B5C93BA64DA8E1317E844551EBE0335F04305FFA4727325232686010D53F0A1A6F95F2392A4466752A6B4E4E6461FAC11DD7B1F1E4128D553856784AC473AC65E4017E7E4931772E03ED489FC472FB53A7186036B1D5DE866442D37F556435755E843CEB7462483D3E7F31805806EEECD9EC44DC0A775E7431048E27184D8EDC9BEDCE8EC85B4F343A7F64300D0473040A9C45870E1D27D7B2B1345AC66C2B79083C4363699EE3F73E151E2D5BEAC86C176C96351196FA124BD1EC83D772C1BB33FC761D6F68BAB37C84AD99C2D2D9DDF5403558F658375104F7CF30429199E15CCCE60D720FB3BE9F3FA2666A97F60FF0766E18FF64E9F2B6C21B564B0EC5B1A426BB6AB1B88614D0A42EC0A5FE3ABB9862D2E77C15FD5CD5ABDAA1FE3B5924D94C5D74F455020E20E6F07FCC9B2BB9249B5CD585F54C1D17E108EF77F2909E6F35FB937F88621CDEB0CF4012CEFCD77ADDF19BEBCE426883D6E1E4BF0FA51FFB0B7F56C30AE57C97FD97A438CC9BA0B56DEEFEC059405B438AE82A5FDD2F96661C8AC4A092778C233C425A93562AAA2C5B7DC20E4C1D370BBA0B0993651F9D3E67298592A86C0077AD5FAA08FB200395F1E12AF6801E669F97AA40F173263153F35AF54F8B3DDCDD7ADA1DA09E513F2A2F7BAACA48D21B2767E56705D34F8F858D2B195875965FD5AEC3D2711CA3FFC684ECE78C1A453B4BFB</crypted>
+		<crypted>8805EC2008B76BC8844267827F2D168DE7D020ED9ED85411CDB397A7E96B895534D6EF19285C564199894970434D49541AE121FBAE3D682E7B44DF5D010797D66F2853184C72FC7BE49A830544C60598E358883B8E4F1F61A4037B1645A2288049B0A7ADA31373DD7DB0C4B24917FED36A65672AECAF06802F64473B95EA267E5C833E40C53CCB007B4B707C487937E2520D5DF6626DF3A6532FA3C5ED001A6F6CDFE883E831E388B903534CAFE8C5A4128F15E1073EAD3180F26A1C213521F23502FC8C7BBDB4499D866BC73FC94768D542CB6539DEC338C9AFEA0FEB72FE9F4BEB2798CC42BB5814726F008C8DEBB4D68275F3FF93FA8A817CC5A020CC4EEA0D27E2D7A4C360E473E2737552535CC86502AEA0F4415EC8EEF085ABB987E94D343FB705F68D12D4098EC3CFBC69B0F2998CFE1526D2A8192A2C7004AC81974B5053C723FE8388785F9EDD70EA4EA25630F0FC09BF0040624773667C2F6E426E143CFE7D1C2B2046207DED2C093AA722D12643505C6B8934050245CC5823204A49BF116EE1FD5DBCEE000831C63A936DA1DF9AF12E2D795C47F7AF125F7EABEA0ED828A44370A29E98FA31AA405EF1A7D22527EA1508066657132504A5EB79164B796330939FC5330FCA9071CD5A1724C44BB9D4524F5BB32E1EB1CCC131944AB49B0EE98A7B062853AC0B50A1D2C97CE3C6B9E419D9E472D435D0AEE7A00F4F12A8A5571A3F93C675EF41B45DF2EF6D9070E6F486E4D06E84A7914A44B8ADCEDF6AAAD41B6A30B9E37655AD1C744506B529C6D8A94D50EADA55512806F7D89A453121118565D6BF4B6D2A1CE8EBD470E74A23CEBF71749CE4AA519E1C88B5881972A578BCDD82C624E8159393F57EEB2723A17F5D1D3880AEECBA64CCBBE013A3CCE209497D10A09EC7E23685FA45431ADB5DA6D48506C705BF5E2D7C619B55BE5699E4AD992DCCCC5CE77327F14A41CDB7DFCF37BCFF5183768B02937A864C54548600F51B0686F2C4B36A3A6FB118F405F669E3987FF58450CBAAC6155E84980EB0D2479C239E95A8E8E835B22C2A707D1FDEA0A4DCAF31B818D598D54B87053BAEE641C88D96F009382580480E91FD7664CA8D5D93EEACE8D0890EE28011EDCC82DAF3D06C652FFF65540BCAC2BCA37B9368831D3B5A85865885390FD9EC1BA0F961CA62B58A9CD72AFCB75B092729AA4A59A9700F4F0BE6E905074B6939C3ED1C622E5BF82348D21D5B4F26355144872568B8489A93C622EBCCB29889A53BD46226FEE0CBD577E6AE6A827CE62DA02E45F3BB0ED749923F87375C4BD36277D4B3E9A07B9475610D44716E5BF3149745B94C90C2CE6D652D31A78D5D6E1253837FAFB9DA4928D8265FE3FB8E95B81B2CEF813FAE0B4CC52BCCDBD2433F21F860728CB1E293513522090CF4EADEA24AC466B8277D094E2F588056B90271876773F52707824708AB17FFFD457A1D5CD2AFF9CDC140ACDB76A256F4147C114144EDF2873DDDCEEC40960827E5F8E79F9589EAD43B65D343AB1314A2847775DA43C74421A42D35D0CA365DB1B6DD2128F9304F32EB343E00183C73F9008CEF0F41034A4A9F3C9565C5A8FCBF2ED1ECCC946102A14BED3598E20AD7F70A476B017480B9E099B84430692A720EE5F7A39BA57B33C3D42ADB32008F141F110EE1BA24B2E42E00354F4B2778CAC6201F3A0E71B1C38E80DC39C5153830F55A0A6310D0A3E4F58342747E10CD6DB379221E109562940F0C88EF0A1B12C66B53CA436E21AC73F3C3E1A17E3819A7D306592F4C162CABD29642931F5C1596D33DC13A1AE263823F3E7D008D5D1C682640B08ECA23A940C329CCC68F7784FB8FE84B8F0D361CD1C6B85442D7B2D66AE254EB35CFA35F70A3AC3A348E0B8FC883C1DD86D92E0E389E7F86BF1F5D6004BC83EF0337A93DEF6085202BEA49CCCC2415BE5C023B44747E0CEB13FD20326E4AC4EAC52DD5264D682784A9FE6D6C9F188282C776E449F9A28055F68F931699AF66294ED6BC091946348688B0B0CD815E889AE0CFA3DC3080B65644DB9542CCE6F729BCF411B81D9185FDFD309C3A792A096B1E7F74AA7A2EA419DFA27AC83F0A8FFE94A52391287F15C412A12FE0005B7590F0A9531FF1331D66F347B4F089BBF3FD8D1A0EDD2110C88430D21B0DC5C935855D2E91B997924384E78792EF21C6D25AD6279EC255D2A3B6D03EA62BDFBA9825C22541200625510B2780256C4443A13A1EDFC3D5177EAAF242BE6DA6B06010AB692DBDEA8FE3DB098181D5B536A313117369D73500E6449AFFDC0751F2321950DF3F71AE130D06DE1D672AA6ADD71629797E11BE64F10D5973E405A6F0C4E0F3B5E945AA65E10F050552D5B4A3EBB511093DB159A86C4E80C06F5F021306D564041175682D2B421C3B28D4A2590748060E9C5F9B997932362D572BA546DB92E14B8199CDA79944AA09BB5785C772FBF3021A1BFB3B88785BEA9137D1A8F038716DAC6873739E9A5CACA191549B6582375646874069E90D6AB9ABFA1F5B12E0B7F1415FCFF5C587D8765AEF696CF4F5B5B3C9C58B226C2A09F851F85A2CA6D93039E49044440DBB9FE594266B0EC51CEC2066DAE6CD79F9A6EB5E153B64BF777E39F9BBA7A36ADECFE3A4DF7ABC8F13770879DBCF0D27F7045A478E0077791BB6AAF283BE3A933FEAB67B05F6769EC8B0C319C5CB01DC37820F86C91C5408D237036888C43F5F6181B0A676CA97CF0C6B3FEDB58ECB0B8C4BA1051A62213660AAB4AC774963031DE6D87E25E3F91C77692A579BA2741D1474BFC195C2BF4DE3A0A243124FCA0BB14B9F6E941E9E13D7BD3EA1383D49896F139DC519F81011A2E41987EAEC5565401025843076F3B4DBED45F02B6391FE66B2A5DBB93817FBCF14969B11BD1A1336EAFB21D7D476FF4B99AE28DA5BFB311945944226F88789B6BAEB3475AF6867C106319C21543A6C40C3390040CB4F8CD5A3EA1FCFE529E7E9F49B38C4687F5462611155627A5FDEC89F9BAB2B64A2B2EF4A814000C100A8CF385A0D52BAA11A08604E94047C499161447FBDBB45B724A891BCB07F4E855666F1CDF333B201E955E3F9B4238599C5F5D608CCD8E320C14F5E99000CB27D0FD9293ABA89F859F860E2652405A946D46FA9EA578DA743EFAA031C8C72B9FCD31E23E27F438773CF611862DD0C75B23B6B927511DE7EFC028F0C457FBA427E2E6F84C4B840A259E3BA280EB7EB30E1037914E12CA056A55588017D10B3D7D69E807ABA333CAB7E1A02B32105D52B08521C4EA65DCC6D3F1EAFD0A599B3407C78CB3BFBE56015D8905F6F612AA6160693F56F9763BA181B4B453C940AFBFBEECCE5D049F44A3F2AF85F16270BE94B65C17A2D98F90D743923DAAE42A6052CFEB3446602686C468AFF1C6522D5E487A051FAAD4C70CD8E24DA86627098A1BCEED93E0D59A1485B86E36BB10710E0A1E9958F0600C24DADE7022F6FDA984673BA9E7A41F7DE0008DB5F0A73DFFEF76CF66D105812A60DF8840D2DE3D4EC27C660AB70DEADD84CBBB16B7E6E6DD40BA2032BAA5E3D380F6252802814E68109194917A4CE0BD44C4FA371EDF2516DE00B884A315178A218C75B006ED93F4D8D04A165EBD736B5EF17E8220D943E8FA83514B16625E4C1E557D85167BD2F8EFE95168EA691FB2F458BD8F428BDE1F23E56C12A2814D65EC4172EF289C60370478AC2A5150D267C77BBF4E2697DC289A391B417FA741A3DD275705888988AD4676F1D20263502C214C9368342015DC9051EF0EDE9CF8E038707EBDC4128E872DE3F7772CE97BA1FE288D31A3CAE2B3894FD7A22B2CF629771B1DFA0468ED7DF0E6AC206D3FE176845EB29740A8AE60EF9C161F3787FE32620421324169DA731B7CDB518468AACA9F9B0605AF4A21E5F7EC859F21408F610373652ED84DD4DA23BE392E0B7E6805FFF8A310AF53CDA74FC72BD2A2FA152D929D628FE423118DCCCB6A92E19E0276AED6C67B2A1F13AEFD9191640741E10124E1905B913830A0FE4311F3586F91028FEE10609D1086299AFB678BC36AE2AE852BC2D531A5B5F202ACF8AD4C092FA0F18F9C8D7D81F553EC2E9AA7C7BB455828539DEB6DC8BA1F953467F427F08880442C2CD4B522BA564C233E8E0BC2F78F255138EAD9E162E2ED9DBB4493B209C7F66643A250DD51F396957E17CF05C5BAD11EAF59B1FBDAC915ADFEBD4893FF6EB18AB136492A7B5C87BE9DF35AAA68A14120242676E931284527999C7E6FB32A586215DAF09C308D28822ABF2864E36782F37528A6968DE5FFBC2FB59E230EA93BD7B4409C4AF2A0F1F09487B8196F6C458AD4B29D9113D7A00FADD65226A227EB407833DE9E891D62817A90BEC1E5237DD27F9FF4834245A9F15A9C3EC31740C6C7283C9DC695E784C979E2E6E070D972320720C826E</crypted>
 		<attribute name="TypeCodeCheckSumString" value="93C5"></attribute>
 		<attribute name="TypeSignatureCheckSumString" value="47F1"></attribute>
 		<ExternalToolsOnly>
@@ -2781,9 +2905,9 @@ END_IF;
 		<attribute name="TypeSignatureCheckSumString" value="ABF3"></attribute>
 		<array>ARRAY[0..4000] OF INT</array>
 	</DDTSource>
-	<FBSource nameOfFBType="LECTURAS_MB_READ_VAR_M340" version="0.05" dateTime="dt#2009-09-29-15:15:42">
+	<FBSource nameOfFBType="LECTURAS_MB_READ_VAR_M340" version="0.06" dateTime="dt#2022-05-17-13:40:28">
 		<attribute name="TypeProtectionLevel" value="2#0000_0000"></attribute>
-		<attribute name="TypeCodeCheckSumString" value="CE5E"></attribute>
+		<attribute name="TypeCodeCheckSumString" value="8A66"></attribute>
 		<attribute name="TypeSignatureCheckSumString" value="A451"></attribute>
 		<inputParameters>
 			<variables name="NUMERO_LECTURAS" typeName="INT">
@@ -2825,93 +2949,63 @@ END_IF;
 			<variables name="COM_OK" typeName="EBOOL"></variables>
 		</privateLocalVariables>
 		<FBProgram name="Comunicacion">
-			<STSource>COM_OK:=ARRAY_GEST[1].0 &amp; Numero_lecturas&gt;0;
+			<STSource>com_ok:=ARRAY_GEST[1].0 &amp; NUMERO_LECTURAS&gt;0;
  
-if fe (COM_OK) then
-
-	if ARRAY_GEST[2]=0 then
-		ARRAY_LECTURAS[INDEX].Reintentos:=Numero_reintentos;
+IF FE (COM_OK) THEN
+	IF ARRAY_GEST[2]=0 THEN
+		ARRAY_LECTURAS[INDEX].Reintentos:=NUMERO_REINTENTOS;
 		ARRAY_LECTURAS[INDEX].Fallo:=FALSE;
 		ARRAY_LECTURAS[INDEX].Codigo_fallo:=0;		
-			if INDEX&gt;=Numero_lecturas then 
+		IF INDEX&gt;=NUMERO_LECTURAS THEN 
 			INDEX:=1;
-                        Contaje_INDEX_Read_Var:=Contaje_INDEX_Read_Var+1;
-			else
-			inc (INDEX);
-                        Contaje_INDEX_Read_Var:=Contaje_INDEX_Read_Var+1;
-			end_if;
+                	CONTAJE_INDEX_READ_VAR:=CONTAJE_INDEX_READ_VAR+1;
+		ELSE
+			INC (INDEX);
+                	CONTAJE_INDEX_READ_VAR:=CONTAJE_INDEX_READ_VAR+1;
+		END_IF;
 
-			if modificar_peticion then
-		        INDEX:=Nuevo_comienzo_indexado;
-                        Contaje_INDEX_Read_Var:=0;
-			modificar_peticion:=0;
-			end_if;
-	else 
-			if ARRAY_LECTURAS[INDEX].Reintentos=0 then
+		IF MODIFICAR_PETICION THEN
+	        	INDEX:=NUEVO_COMIENZO_INDEXADO;
+                	CONTAJE_INDEX_READ_VAR:=0;
+			MODIFICAR_PETICION:=0;
+		END_IF;
+	ELSE 
+		IF ARRAY_LECTURAS[INDEX].Reintentos=0 THEN
 			ARRAY_LECTURAS[INDEX].Fallo:=TRUE;
 			ARRAY_LECTURAS[INDEX].Codigo_fallo:=INT_TO_BYTE (ARRAY_GEST[2]);
-				if INDEX&gt;=Numero_lecturas then
+			IF INDEX&gt;=NUMERO_LECTURAS THEN
 				INDEX:=1;
-                                Contaje_INDEX_Read_Var:=Contaje_INDEX_Read_Var+1;
-				else
-				inc (INDEX);
-                                Contaje_INDEX_Read_Var:=Contaje_INDEX_Read_Var+1;
-				end_if;	
-			else
-			dec (ARRAY_LECTURAS[INDEX].Reintentos);
-			end_if;
+                        	CONTAJE_INDEX_READ_VAR:=CONTAJE_INDEX_READ_VAR+1;
+			ELSE
+				INC (INDEX);
+                        	CONTAJE_INDEX_READ_VAR:=CONTAJE_INDEX_READ_VAR+1;
+			END_IF;	
+		ELSE
+			DEC (ARRAY_LECTURAS[INDEX].Reintentos);
+		END_IF;
 
-			if modificar_peticion then
-			ARRAY_LECTURAS[INDEX].Reintentos:=Numero_reintentos;
-		        INDEX:=Nuevo_comienzo_indexado;
-                        Contaje_INDEX_Read_Var:=0;
-			modificar_peticion:=0;
-			end_if;
-	end_if;
-End_if;
+		IF MODIFICAR_PETICION THEN
+			ARRAY_LECTURAS[INDEX].Reintentos:=NUMERO_REINTENTOS;
+	        	INDEX:=NUEVO_COMIENZO_INDEXADO;
+                	CONTAJE_INDEX_READ_VAR:=0;
+			MODIFICAR_PETICION:=0;
+		END_IF;
+	END_IF;
+END_IF;
 
-
-Busy:=COM_OK;
+BUSY:=com_ok;
 </STSource>
 		</FBProgram>
 		<FBProgram name="Analizador">
-			<FBDSource nbRows="24" nbColumns="36">
-				<networkFBD>
-					<FFBBlock instanceName=".1" typeName="ADDM" additionnalPinNumber="0" enEnO="false" width="7" height="5">
-						<objPosition posX="16" posY="21"></objPosition>
-						<descriptionFFB execAfter="">
-							<inputVariable invertedPin="false" formalParameter="EN"></inputVariable>
-							<inputVariable invertedPin="false" formalParameter="IN" effectiveParameter="Array_lecturas[INDEX].Terminal"></inputVariable>
-							<outputVariable invertedPin="false" formalParameter="ENO"></outputVariable>
-							<outputVariable invertedPin="false" formalParameter="OUT"></outputVariable>
-						</descriptionFFB>
-					</FFBBlock>
-					<FFBBlock instanceName=".2" typeName="READ_VAR" additionnalPinNumber="0" enEnO="true" width="8" height="9">
-						<objPosition posX="43" posY="16"></objPosition>
-						<descriptionFFB execAfter="">
-							<inputVariable invertedPin="false" formalParameter="EN" effectiveParameter="NOT ARRAY_GEST[1].0&amp;Numero_lecturas&gt;0 &amp; Habilitar"></inputVariable>
-							<inputVariable invertedPin="false" formalParameter="ADR"></inputVariable>
-							<inputVariable invertedPin="false" formalParameter="OBJ" effectiveParameter="Array_lecturas[INDEX].Objeto"></inputVariable>
-							<inputVariable invertedPin="false" formalParameter="NUM" effectiveParameter="Array_lecturas[INDEX].Dir_inicial_terminal"></inputVariable>
-							<inputVariable invertedPin="false" formalParameter="NB" effectiveParameter="Array_lecturas[INDEX].Num_palabras"></inputVariable>
-							<inputVariable invertedPin="false" formalParameter="GEST" effectiveParameter="ARRAY_GEST"></inputVariable>
-							<outputVariable invertedPin="false" formalParameter="ENO"></outputVariable>
-							<outputVariable invertedPin="false" formalParameter="GEST" effectiveParameter="ARRAY_GEST"></outputVariable>
-							<outputVariable invertedPin="false" formalParameter="RECP" effectiveParameter="Array_lecturas[INDEX].Array_destino"></outputVariable>
-						</descriptionFFB>
-					</FFBBlock>
-					<linkFB>
-						<linkSource parentObjectName=".1" pinName="OUT">
-							<objPosition posX="22" posY="25"></objPosition>
-						</linkSource>
-						<linkDestination parentObjectName=".2" pinName="ADR">
-							<objPosition posX="43" posY="20"></objPosition>
-						</linkDestination>
-						<gridObjPosition posX="24" posY="25"></gridObjPosition>
-						<gridObjPosition posX="24" posY="20"></gridObjPosition>
-					</linkFB>
-				</networkFBD>
-			</FBDSource>
+			<STSource>IF NOT ARRAY_GEST[1].0 &amp; NUMERO_LECTURAS&gt;0 &amp; HABILITAR THEN
+	READ_VAR (ADR := ADDM(ARRAY_LECTURAS[INDEX].Terminal),
+	          OBJ := ARRAY_LECTURAS[INDEX].Objeto,
+	          NUM := ARRAY_LECTURAS[INDEX].Dir_inicial_terminal,
+	          NB := ARRAY_LECTURAS[INDEX].Num_palabras,
+	          GEST := ARRAY_GEST,
+	          RECP =&gt; ARRAY_LECTURAS[INDEX].Array_destino);
+END_IF;
+</STSource>
 		</FBProgram>
 	</FBSource>
 </PGMExchangeFile>
